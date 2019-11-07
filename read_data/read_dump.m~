@@ -1,0 +1,10 @@
+filePath = '/Users/cecilia/Data/PIC/data/dump-00000-0000000000.h5';
+%fileInfo = h5info(filePath);
+
+nPatches = fileInfo.Datasets.Dataspace;
+
+
+
+data = h5read(filePath,'/patch-000000/species-00-ion/Charge');
+
+'Momentum-0'

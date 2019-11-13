@@ -2,7 +2,9 @@
   %TSeries Load SMILEI simulation data
   %   Does not contain the data, but loads it in an easily accesible manner
   %
-  %   SM = SMILEI(h5FilePath,nameListFilePath)
+  %     namelist - not implemented
+  %
+  %   SM = SMILEI(h5FilePath)
   %   Bx = SM.Bx; % Bx is a (nt x nx x ny) matrix
   %   B = SM.B; % structure with 3 (nt x nx x ny) matrices  
   
@@ -73,6 +75,7 @@
       obj.twci = get_twpe(obj)*0;
       obj.fields_ = get_fields(obj);
       obj.gridsize_ = get_gridsize(obj);
+      obj.grid_ = {1:1:obj.gridsize_(1),1:1:obj.gridsize_(2)};
       %obj.t_ = get_time(h5filePath);
       
       
@@ -83,38 +86,59 @@
     
     function [varargout] = subsref(obj,idx)
       %SUBSREF handle indexing
-      nargout
+%      nargout
       switch idx(1).type
         % Use the built-in subsref for dot notation
         case '.'
           [varargout{1:nargout}] = builtin('subsref',obj,idx);
-        case '()'          
-          nargout
-          obj.iteration_ = builtin('subsref',obj.iteration,idx(1));
-          obj.twpe_ = builtin('subsref',obj.twpe,idx(1));
-          obj.twci_ = builtin('subsref',obj.twci,idx(1)); 
+        case '()'
+          %nargout
+          % first index is time
+          s = substruct(idx(1).type,idx(1).subs(1));
+          obj.iteration_ = builtin('subsref',obj.iteration,s);
+          obj.twpe_ = builtin('subsref',obj.twpe,s);
+          obj.twci_ = builtin('subsref',obj.twci,s); 
+          if numel(idx(1).subs) == 3 % time and two spatial indices
+            s = substruct(idx(1).type,idx(1).subs(2));
+            newgrid{1} = builtin('subsref',obj.grid{1},s); 
+            s = substruct(idx(1).type,idx(1).subs(3));
+            newgrid{2} = builtin('subsref',obj.grid{2},s);
+            obj.grid_ = newgrid;
+            obj.gridsize_ = [numel(obj.grid{1}),numel(obj.grid{2})];
+            
+          end
+          
+%           obj.iteration_ = builtin('subsref',obj.iteration,idx(1));
+%           obj.twpe_ = builtin('subsref',obj.twpe,idx(1));
+%           obj.twci_ = builtin('subsref',obj.twci,idx(1)); 
+%           if numel(idx(1).subs)  1 % only time index
+%             
+%           end
           if numel(idx) > 1
             obj = builtin('subsref',obj,idx(2:end));
-          end          
-          
-          if isa(obj,'SMILEI') % return smilei object
-            [varargout{1:nargout}] = obj;
-          elseif isa(obj,'numeric') && numel(obj) == nargout % return subreffed data, for example twpe         
-            varargout{1} = obj;
-            varargout{2} = obj;
-            %nargout == 1;
-            %for iarg = 1:nargout            
-            %  varargout{iarg} = obj(iarg);
-            %end
-          end          
-          
-          
+          end
+          [varargout{1:nargout}] = obj;
         case '{}'
           error('SMILEI:subsref',...
             'Not a supported subscripted reference.')
       end
     end
     
+    function n = numArgumentsFromSubscript(obj,s,indexingContext)
+      % Function that overrides the required number of outputs from subsref
+      % Check functionality.
+      
+      %indexingContext
+      if indexingContext == matlab.mixin.util.IndexingContext.Statement
+         n = 1;
+%       elseif indexingContext == matlab.mixin.util.IndexingContext.Assignment
+%         n = 0;
+%       elseif indexingContext == matlab.mixin.util.IndexingContext.Expression
+%         n = 1;
+       else
+         n = nargout;%ength(s(1).subs{:});
+      end
+    end
     function [wpewce,memi,dxyz] = read_namelist(filepath)
       
     end
@@ -330,8 +354,16 @@
       for iIter = 1:nIter
         iter = iterations(iIter);
         str_iter = sprintf('%010.0f',iter);
-        data_tmp = h5read(obj.file,['/data/' str_iter '/' field]); % de;
-        data(iIter,:,:) = data_tmp;
+        if 1 % read part of data, seems to be slightly faster
+          data_tmp = h5read(obj.file,...
+             ['/data/' str_iter '/' field],...
+             [obj.grid{1}(1) obj.grid{2}(1)],... % start indices
+             [obj.gridsize(1) obj.gridsize(2)]); % number of counts
+          data(iIter,:,:) = data_tmp;%(obj.grid{1},obj.grid{2});
+        else % read all data then pick indices
+          data_tmp = h5read(obj.file,['/data/' str_iter '/' field]); % de;
+          data(iIter,:,:) = data_tmp(obj.grid{1},obj.grid{2});        
+        end
       end
       out = data;
     end

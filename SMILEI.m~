@@ -33,14 +33,11 @@
     iteration
     twpe
     twci
+    wpewce
+    mime    
     gridsize
     grid
-    wpewce
-    mime
     coordinateSystem
-  end
-  
-  properties (Constant = true)    
   end
   
   properties (Constant = true, Hidden = true)
@@ -70,7 +67,6 @@
       obj.iteration = get_iterations(obj);
       %obj.twci = get_iterations(obj);
       obj.twpe = get_twpe(obj);
-      obj.twci = get_twpe(obj)*0;
       obj.fields_ = get_fields(obj);
       obj.gridsize_ = get_gridsize(obj);
       %obj.t_ = get_time(h5filePath);
@@ -83,35 +79,23 @@
     
     function [varargout] = subsref(obj,idx)
       %SUBSREF handle indexing
-      nargout
       switch idx(1).type
         % Use the built-in subsref for dot notation
         case '.'
           [varargout{1:nargout}] = builtin('subsref',obj,idx);
-        case '()'          
-          nargout
-          obj.iteration_ = builtin('subsref',obj.iteration,idx(1));
-          obj.twpe_ = builtin('subsref',obj.twpe,idx(1));
-          obj.twci_ = builtin('subsref',obj.twci,idx(1)); 
+        case '()'
+          tmpEpoch = builtin('subsref',obj.time,idx(1));
+          obj.t_ = tmpEpoch;
+          idxTmp = repmat({':'}, ndims(obj.data), 1);
+          idxTmp(1) = idx(1).subs;
+          obj.data_ = obj.data_(idxTmp{:});
           if numel(idx) > 1
             obj = builtin('subsref',obj,idx(2:end));
-          end          
-          
-          if isa(obj,'SMILEI') % return smilei object
-            [varargout{1:nargout}] = obj;
-          elseif isa(obj,'numeric') && numel(obj) == nargout % return subreffed data, for example twpe         
-            varargout{1} = obj;
-            varargout{2} = obj;
-            %nargout == 1;
-            %for iarg = 1:nargout            
-            %  varargout{iarg} = obj(iarg);
-            %end
-          end          
-          
-          
+          end
+          [varargout{1:nargout}] = obj;
         case '{}'
-          error('SMILEI:subsref',...
-            'Not a supported subscripted reference.')
+          error('irf:TSeries:subsref',...
+            'Not a supported subscripted reference')
       end
     end
     
@@ -121,19 +105,19 @@
     function value = get.coordinateSystem(obj)
       value = obj.coordinateSystem_;
     end
-        
+    
+    %function value = get.data(obj)
+    %  value = obj.data_;
+    %end
+    
     function value = length(obj)
       value = numel(obj.iteration);
     end
    
-    % Get subset of data, time and/or space
-    function obj = ilim(obj,value)
-      % Get 
-      obj = subsref(obj,value);
-      
+    function value = basis(obj)
+      value = obj.BASIS{obj.tensorBasis_};
     end
     
-    % Get simulation meta data and parameters
     function out = get_twpe(obj)
       fileInfo = obj.info_;
       nOutput = numel(fileInfo.Groups.Groups);
@@ -163,88 +147,20 @@
       fileInfo = obj.info_;
       out = fileInfo.Groups(1).Groups(1).Datasets(1).Dataspace.Size;
     end
-    
-    % Get fields
-    function out = Bx(obj)
-      out = get_field(obj,'Bx');
+    %Components
+    function f = Bx(obj)
+      % get Bx
+      f = get_field(obj,'Bx');
     end
-    function out = By(obj)
-      out = get_field(obj,'By');
+    function f = By(obj)
+      %access Y component
+      [y,ok] = getComponent(obj,'y'); if ~ok, error('cannot get Y'), end
     end
-    function out = Bz(obj)
-      out = get_field(obj,'Bz');
-    end
-    function out = Ex(obj)
-      out = get_field(obj,'Ex');
-    end
-    function out = Ey(obj)
-      out = get_field(obj,'Ey');
-    end
-    function out = Ez(obj)
-      out = get_field(obj,'Ez');
-    end
-    function out = Jx_eon(obj)
-      out = get_field(obj,'Jx_eon');
-    end
-    function out = Jy_eon(obj)
-      out = get_field(obj,'Jy_eon');
-    end
-    function out = Jz_eon(obj)
-      out = get_field(obj,'Jz_eon');
-    end
-    function out = Jx_ion(obj)
-      out = get_field(obj,'Jx_ion');
-    end
-    function out = Jy_ion(obj)
-      out = get_field(obj,'Jy_ion');
-    end
-    function out = Jz_ion(obj)
-      out = get_field(obj,'Jz_ion');
-    end
-    function out = Jx(obj)
-      % find fields that contains Jx
-      index = find(contains(obj.fields,'Jx'));
-      Jx = zeros([obj.length,obj.gridsize]);
-      for iField = 1:numel(index)
-        Jx = Jx + obj.get_field(obj.fields{index(iField)});
-      end
-      out = Jx;
-    end
-    function out = Jy(obj)
-      % find fields that contains Jx
-      index = find(contains(obj.fields,'Jy'));
-      J = zeros([obj.length,obj.gridsize]);
-      for iField = 1:numel(index)
-        J = J + obj.get_field(obj.fields{index(iField)});
-      end
-      out = J;
-    end
-    function out = Jz(obj)
-      % find fields that contains Jx
-      index = find(contains(obj.fields,'Jz'));
-      J = zeros([obj.length,obj.gridsize]);
-      for iField = 1:numel(index)
-        J = J + obj.get_field(obj.fields{index(iField)});
-      end
-      out = J;
-    end
-    function out = Rho_eon(obj)
-      out = get_field(obj,'Rho_eon');
-    end
-    function out = Rho_ion(obj)
-      out = get_field(obj,'Rho_eon');
-    end
-    function out = Rho(obj)
-      % find fields that contains Rho
-      index = find(contains(obj.fields,'Rho'));
-      Rho = zeros([obj.length,obj.gridsize]);
-      for iField = 1:numel(index)
-        Rho = Rho + obj.get_field(obj.fields{index(iField)});
-      end
-      out = Rho;
+    function f = Bz(obj)
+      %access Z component
+      [y,ok] = getComponent(obj,'z'); if ~ok, error('cannot get Z'), end
     end
     
-    % Get and set properties
     function obj = set.coordinateSystem(obj,value)
       if obj.tensorOrder_ < 1 
         error('irf:TSeries:setcoordinateSystem:badInputs',...
@@ -313,27 +229,22 @@
       value = obj.grid_;
     end            
     
+    
+    
+      
+
   end
   
   methods (Access=protected)
     function out = get_field(obj,field)
-      % valiadate field       
-      if not(ismember(field,obj.fields))
-        error(sprintf('Field ''%s'' not recognized.',field))
-      end
-      
       % get iterations
       iterations = obj.iteration;
       nIter = obj.length;
       % initialize matrix
       data = nan([nIter,obj.gridsize]);
       for iIter = 1:nIter
-        iter = iterations(iIter);
-        str_iter = sprintf('%010.0f',iter);
-        data_tmp = h5read(obj.file,['/data/' str_iter '/' field]); % de;
-        data(iIter,:,:) = data_tmp;
+        data(iIter) = 
       end
-      out = data;
     end
     
     function Ts = changeBasis(obj, flag)

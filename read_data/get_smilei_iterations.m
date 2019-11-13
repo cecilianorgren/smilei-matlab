@@ -1,4 +1,4 @@
-function out = smilei_get_times(filePath)
+function out = smilei_get_iterations(filePath)
 fileInfo = h5info(filePath);
 nOutput = numel(fileInfo.Groups.Groups);
 

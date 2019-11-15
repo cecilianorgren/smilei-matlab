@@ -2,7 +2,9 @@
   %TSeries Load SMILEI simulation data
   %   Does not contain the data, but loads it in an easily accesible manner
   %
-  %   SM = SMILEI(h5FilePath,nameListFilePath)
+  %     namelist - not implemented
+  %
+  %   SM = SMILEI(h5FilePath)
   %   Bx = SM.Bx; % Bx is a (nt x nx x ny) matrix
   %   B = SM.B; % structure with 3 (nt x nx x ny) matrices  
   
@@ -33,11 +35,14 @@
     iteration
     twpe
     twci
-    wpewce
-    mime    
     gridsize
     grid
+    wpewce
+    mime
     coordinateSystem
+  end
+  
+  properties (Constant = true)    
   end
   
   properties (Constant = true, Hidden = true)
@@ -55,7 +60,10 @@
   end
   
   methods
-    function obj = SMILEI(h5filePath,nameListFilePath)
+    function obj = SMILEI(h5filePath,particleBinningFilePath,nameListFilePath)
+      % sm = SMILEI(pathFields,pathBinning,pathNamelist)
+      % sm = SMILEI(pathFields,[],[]) - current implementation
+    
       if exist('nameListFilePath','var') && not(isempty(nameListFilePath))
         [wpewce,mime,dxyz] = read_filelist(nameListFilePath);
         obj.wpewce_ = wpewce;
@@ -67,8 +75,10 @@
       obj.iteration = get_iterations(obj);
       %obj.twci = get_iterations(obj);
       obj.twpe = get_twpe(obj);
+      obj.twci = get_twpe(obj)*0;
       obj.fields_ = get_fields(obj);
       obj.gridsize_ = get_gridsize(obj);
+      obj.grid_ = {1:1:obj.gridsize_(1),1:1:obj.gridsize_(2)};
       %obj.t_ = get_time(h5filePath);
       
       
@@ -79,45 +89,78 @@
     
     function [varargout] = subsref(obj,idx)
       %SUBSREF handle indexing
+%      nargout
       switch idx(1).type
         % Use the built-in subsref for dot notation
         case '.'
           [varargout{1:nargout}] = builtin('subsref',obj,idx);
         case '()'
-          tmpEpoch = builtin('subsref',obj.time,idx(1));
-          obj.t_ = tmpEpoch;
-          idxTmp = repmat({':'}, ndims(obj.data), 1);
-          idxTmp(1) = idx(1).subs;
-          obj.data_ = obj.data_(idxTmp{:});
+          %nargout
+          % first index is time
+          s = substruct(idx(1).type,idx(1).subs(1));
+          obj.iteration_ = builtin('subsref',obj.iteration,s);
+          obj.twpe_ = builtin('subsref',obj.twpe,s);
+          obj.twci_ = builtin('subsref',obj.twci,s); 
+          if numel(idx(1).subs) == 3 % time and two spatial indices
+            s = substruct(idx(1).type,idx(1).subs(2));
+            newgrid{1} = builtin('subsref',obj.grid{1},s); 
+            s = substruct(idx(1).type,idx(1).subs(3));
+            newgrid{2} = builtin('subsref',obj.grid{2},s);
+            obj.grid_ = newgrid;
+            obj.gridsize_ = [numel(obj.grid{1}),numel(obj.grid{2})];
+            
+          end
+          
+%           obj.iteration_ = builtin('subsref',obj.iteration,idx(1));
+%           obj.twpe_ = builtin('subsref',obj.twpe,idx(1));
+%           obj.twci_ = builtin('subsref',obj.twci,idx(1)); 
+%           if numel(idx(1).subs)  1 % only time index
+%             
+%           end
           if numel(idx) > 1
             obj = builtin('subsref',obj,idx(2:end));
           end
           [varargout{1:nargout}] = obj;
         case '{}'
-          error('irf:TSeries:subsref',...
-            'Not a supported subscripted reference')
+          error('SMILEI:subsref',...
+            'Not a supported subscripted reference.')
       end
     end
     
+    function n = numArgumentsFromSubscript(obj,s,indexingContext)
+      % Function that overrides the required number of outputs from subsref
+      % Check functionality.
+      
+      %indexingContext
+      if indexingContext == matlab.mixin.util.IndexingContext.Statement
+         n = 1;
+%       elseif indexingContext == matlab.mixin.util.IndexingContext.Assignment
+%         n = 0;
+%       elseif indexingContext == matlab.mixin.util.IndexingContext.Expression
+%         n = 1;
+       else
+         n = nargout;%ength(s(1).subs{:});
+      end
+    end
     function [wpewce,memi,dxyz] = read_namelist(filepath)
       
     end
     function value = get.coordinateSystem(obj)
       value = obj.coordinateSystem_;
     end
-    
-    %function value = get.data(obj)
-    %  value = obj.data_;
-    %end
-    
+        
     function value = length(obj)
       value = numel(obj.iteration);
     end
    
-    function value = basis(obj)
-      value = obj.BASIS{obj.tensorBasis_};
+    % Get subset of data, time and/or space
+    function obj = ilim(obj,value)
+      % Get 
+      obj = subsref(obj,value);
+      
     end
     
+    % Get simulation meta data and parameters
     function out = get_twpe(obj)
       fileInfo = obj.info_;
       nOutput = numel(fileInfo.Groups.Groups);
@@ -147,21 +190,89 @@
       fileInfo = obj.info_;
       out = fileInfo.Groups(1).Groups(1).Datasets(1).Dataspace.Size;
     end
-    %Components
-    function f = Bx(obj)
-      % get Bx
-      f = get_field(obj,'Bx');
+    
+    % Get fields
+    function out = Bx(obj)
+      out = get_field(obj,'Bx');
     end
-    function f = By(obj)
-      %access Y component
-      [y,ok] = getComponent(obj,'y'); if ~ok, error('cannot get Y'), end
+    function out = By(obj)
+      out = get_field(obj,'By');
     end
-    function f = Bz(obj)
-      %access Z component
-      [y,ok] = getComponent(obj,'z'); if ~ok, error('cannot get Z'), end
+    function out = Bz(obj)
+      out = get_field(obj,'Bz');
+    end
+    function out = Ex(obj)
+      out = get_field(obj,'Ex');
+    end
+    function out = Ey(obj)
+      out = get_field(obj,'Ey');
+    end
+    function out = Ez(obj)
+      out = get_field(obj,'Ez');
+    end
+    function out = Jx_eon(obj)
+      out = get_field(obj,'Jx_eon');
+    end
+    function out = Jy_eon(obj)
+      out = get_field(obj,'Jy_eon');
+    end
+    function out = Jz_eon(obj)
+      out = get_field(obj,'Jz_eon');
+    end
+    function out = Jx_ion(obj)
+      out = get_field(obj,'Jx_ion');
+    end
+    function out = Jy_ion(obj)
+      out = get_field(obj,'Jy_ion');
+    end
+    function out = Jz_ion(obj)
+      out = get_field(obj,'Jz_ion');
+    end
+    function out = Jx(obj)
+      % find fields that contains Jx
+      index = find(contains(obj.fields,'Jx'));
+      Jx = zeros([obj.length,obj.gridsize]);
+      for iField = 1:numel(index)
+        Jx = Jx + obj.get_field(obj.fields{index(iField)});
+      end
+      out = Jx;
+    end
+    function out = Jy(obj)
+      % find fields that contains Jx
+      index = find(contains(obj.fields,'Jy'));
+      J = zeros([obj.length,obj.gridsize]);
+      for iField = 1:numel(index)
+        J = J + obj.get_field(obj.fields{index(iField)});
+      end
+      out = J;
+    end
+    function out = Jz(obj)
+      % find fields that contains Jx
+      index = find(contains(obj.fields,'Jz'));
+      J = zeros([obj.length,obj.gridsize]);
+      for iField = 1:numel(index)
+        J = J + obj.get_field(obj.fields{index(iField)});
+      end
+      out = J;
+    end
+    function out = Rho_eon(obj)
+      out = get_field(obj,'Rho_eon');
+    end
+    function out = Rho_ion(obj)
+      out = get_field(obj,'Rho_eon');
+    end
+    function out = Rho(obj)
+      % find fields that contains Rho
+      index = find(contains(obj.fields,'Rho'));
+      Rho = zeros([obj.length,obj.gridsize]);
+      for iField = 1:numel(index)
+        Rho = Rho + obj.get_field(obj.fields{index(iField)});
+      end
+      out = Rho;
     end
     
-    function obj = set.coordinateSystem(obj,value)
+    % Get and set properties
+    function obj = set.coordinateSystem(obj,value) % not used
       if obj.tensorOrder_ < 1 
         error('irf:TSeries:setcoordinateSystem:badInputs',...
           'coordinateSystem can only be set for a tensor')
@@ -229,22 +340,35 @@
       value = obj.grid_;
     end            
     
-    
-    
-      
-
   end
   
   methods (Access=protected)
     function out = get_field(obj,field)
+      % valiadate field       
+      if not(ismember(field,obj.fields))
+        error(sprintf('Field ''%s'' not recognized.',field))
+      end
+      
       % get iterations
       iterations = obj.iteration;
       nIter = obj.length;
       % initialize matrix
       data = nan([nIter,obj.gridsize]);
       for iIter = 1:nIter
-        data(iIter) = 
+        iter = iterations(iIter);
+        str_iter = sprintf('%010.0f',iter);
+        if 1 % read part of data, seems to be slightly faster
+          data_tmp = h5read(obj.file,...
+             ['/data/' str_iter '/' field],...
+             [obj.grid{1}(1) obj.grid{2}(1)],... % start indices
+             [obj.gridsize(1) obj.gridsize(2)]); % number of counts
+          data(iIter,:,:) = data_tmp;%(obj.grid{1},obj.grid{2});
+        else % read all data then pick indices
+          data_tmp = h5read(obj.file,['/data/' str_iter '/' field]); % de;
+          data(iIter,:,:) = data_tmp(obj.grid{1},obj.grid{2});        
+        end
       end
+      out = data;
     end
     
     function Ts = changeBasis(obj, flag)

@@ -60,7 +60,10 @@
   end
   
   methods
-    function obj = SMILEI(h5filePath,nameListFilePath)
+    function obj = SMILEI(h5filePath,particleBinningFilePath,nameListFilePath)
+      % sm = SMILEI(pathFields,pathBinning,pathNamelist)
+      % sm = SMILEI(pathFields,[],[]) - current implementation
+
       if exist('nameListFilePath','var') && not(isempty(nameListFilePath))
         [wpewce,mime,dxyz] = read_filelist(nameListFilePath);
         obj.wpewce_ = wpewce;
@@ -71,8 +74,12 @@
       obj.file = h5filePath; 
       obj.iteration = get_iterations(obj);
       %obj.twci = get_iterations(obj);
+      try
       obj.twpe = get_twpe(obj);
+      end
+      try
       obj.twci = get_twpe(obj)*0;
+      end
       obj.fields_ = get_fields(obj);
       obj.gridsize_ = get_gridsize(obj);
       obj.grid_ = {1:1:obj.gridsize_(1),1:1:obj.gridsize_(2)};
@@ -96,16 +103,15 @@
           % first index is time
           s = substruct(idx(1).type,idx(1).subs(1));
           obj.iteration_ = builtin('subsref',obj.iteration,s);
-          obj.twpe_ = builtin('subsref',obj.twpe,s);
-          obj.twci_ = builtin('subsref',obj.twci,s); 
+          try obj.twpe_ = builtin('subsref',obj.twpe,s); end
+          try obj.twci_ = builtin('subsref',obj.twci,s); end
           if numel(idx(1).subs) == 3 % time and two spatial indices
             s = substruct(idx(1).type,idx(1).subs(2));
             newgrid{1} = builtin('subsref',obj.grid{1},s); 
             s = substruct(idx(1).type,idx(1).subs(3));
             newgrid{2} = builtin('subsref',obj.grid{2},s);
             obj.grid_ = newgrid;
-            obj.gridsize_ = [numel(obj.grid{1}),numel(obj.grid{2})];
-            
+            obj.gridsize_ = [numel(obj.grid{1}),numel(obj.grid{2})];      
           end
           
 %           obj.iteration_ = builtin('subsref',obj.iteration,idx(1));
@@ -122,13 +128,12 @@
           error('SMILEI:subsref',...
             'Not a supported subscripted reference.')
       end
-    end
-    
+    end  
     function n = numArgumentsFromSubscript(obj,s,indexingContext)
       % Function that overrides the required number of outputs from subsref
       % Check functionality.
       
-      %indexingContext
+      indexingContext
       if indexingContext == matlab.mixin.util.IndexingContext.Statement
          n = 1;
 %       elseif indexingContext == matlab.mixin.util.IndexingContext.Assignment
@@ -136,9 +141,10 @@
 %       elseif indexingContext == matlab.mixin.util.IndexingContext.Expression
 %         n = 1;
        else
-         n = nargout;%ength(s(1).subs{:});
+         n = nargout;%length(s(1).subs{:});
       end
     end
+    
     function [wpewce,memi,dxyz] = read_namelist(filepath)
       
     end
@@ -150,10 +156,83 @@
       value = numel(obj.iteration);
     end
    
-    % Get subset of data, time and/or space
+    % Get subset of data, time and/or space, using subsrefs for this for
+    % now
     function obj = ilim(obj,value)
       % Get 
       obj = subsref(obj,value);
+      
+    end
+    
+    % Plotting routines, for simple diagnostics etc
+    function out = make_gif(obj,fields,nrows,ncols,varargin)
+      % [all_im, map] = MAKE_GIF(obj,fields,nrows,ncols)      
+      % make gif
+      % imwrite(im,map,'delme.gif','DelayTime',0.0,'LoopCount',0)  
+      
+      % Subsref error: Does not accept two outputs
+      
+      % Default options, values
+      doAdjustCLim = 0;
+      
+      nfields = numel(fields);
+      ntimes = obj.length;
+            
+      % First load all data once and check what color limits we should use.
+      if nfields == 1
+        all_data = get_field(obj,fields{1});
+        cmax = max(all_data(:));
+        clim = cmax*[-1 1];
+        doAdjustCLim = 1;
+      end
+      
+      % setup figure
+      fig = figure;
+      h = setup_subplots(nrows,ncols); % external function, must include in SMILEI.m
+      disp('Adjust figure size, then hit any key to continue.')
+      pause
+      for itime = 1:ntimes
+        for ifield = 1:nfields
+          tic;
+          hca = h(ifield);
+          S(1).type='()'; S(1).subs = {itime};
+          data = get_field(obj.subsref(S),fields{ifield});
+          imagesc(hca,squeeze(data))
+          hb = colorbar('peer',hca);
+          hb.YLabel.String = fields{ifield};
+          if doAdjustCLim
+            hca.CLim = clim;
+          end
+          toc
+        end
+        pause(0.1)
+        if 1 % collect frames, for making gif
+          iframe = itime;
+          nframes = ntimes;
+          currentBackgroundColor = get(gcf,'color');
+          set(gcf,'color',[1 1 1]);
+          drawnow      
+          tmp_frame = getframe(gcf);
+          %cell_movies{imovie}(itime) = tmp_frame;
+          if iframe == 1 % initialize animated gif matrix
+            [im_tmp,map] = rgb2ind(tmp_frame.cdata,256,'nodither');
+            %map(end+1,:) = get(gcf,'color');
+            im_tmp(1,1,1,nframes) = 0;                                                
+            all_im = im_tmp;
+          else
+            all_im(:,:,1,iframe) = rgb2ind(tmp_frame.cdata,map,'nodither');
+          end       
+        end
+      end
+      out = {all_im,map};
+      
+      % collect frames
+      
+    end
+             
+    
+    % Data analysis routines, time derivatives etc.
+    function out = calc_vector_potential(Bx,By,x,y)
       
     end
     
@@ -169,9 +248,9 @@
     end
     function out = get_iterations(obj)
       fileInfo = obj.info_;
-      nOutput = numel(fileInfo.Groups.Groups);
+      nOutput = numel(fileInfo.Groups(1).Groups);
       for iOutput = 1:nOutput
-        str = fileInfo.Groups.Groups(iOutput).Name;
+        str = fileInfo.Groups(1).Groups(iOutput).Name;
         split_str = strsplit(str,'/');
         iterations(iOutput) = str2num(split_str{3});
       end
@@ -269,7 +348,7 @@
     end
     
     % Get and set properties
-    function obj = set.coordinateSystem(obj,value)
+    function obj = set.coordinateSystem(obj,value) % not used
       if obj.tensorOrder_ < 1 
         error('irf:TSeries:setcoordinateSystem:badInputs',...
           'coordinateSystem can only be set for a tensor')
@@ -339,7 +418,7 @@
     
   end
   
-  methods (Access=protected)
+  methods (Access = protected)
     function out = get_field(obj,field)
       % valiadate field       
       if not(ismember(field,obj.fields))

@@ -6,7 +6,7 @@
   %
   %   SM = SMILEI(h5FilePath)
   %   Bx = SM.Bx; % Bx is a (nt x nx x ny) matrix
-  %   B = SM.B; % structure with 3 (nt x nx x ny) matrices  
+  %   B = SM.B; % structure with 3 (nt x nx x ny) matrices   
   
   properties (Access = protected) % can only be set from within the class (?)
     % Data can be arbitrary size, so the class contains a pointer to the 

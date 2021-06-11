@@ -28,16 +28,13 @@ classdef SMILEI
     twpe_
     twci_
     xe_
-    ye_
     ze_
     xi_
-    yi_
     zi_
     grid_
     indices_
     it_
     ix_
-    iy_
     iz_
 %    wpewce_ = [];
 %    mime_ = [];
@@ -53,16 +50,13 @@ classdef SMILEI
     twpe
     twci
     xe
-    ye
     ze
     xi
-    yi
     zi
     grid
     indices
     it
     ix
-    iy
     iz
     %wpewce
     %mime
@@ -96,8 +90,8 @@ classdef SMILEI
   
   methods
     function obj = SMILEI(h5filePath,nameList,particleBinningPath)
-      % pic = SMILEI(pathFields) % michaels code
-      % pic = SMILEI(pathFields,pathNameList,pathParticleBinning) - % smilei code
+      % pic = PIC(pathFields) % michaels code
+      % pic = PIC(pathFields,pathNameList,pathParticleBinning) - % smilei code
       %   pathParticleBinning should contain wildcard: ParticleBinning*.h5
       %
       % Fields:
@@ -133,19 +127,9 @@ classdef SMILEI
           obj.wpewce = namelist.wpewce;
           obj.teti = namelist.teti;
           % grid
-          if obj.ndim == 1
-            obj.xe = namelist.xe;
-            obj.ye = 0;
-            obj.ze = 0;
-          elseif obj.ndim == 2
-            obj.xe = namelist.xe;
-            obj.ye = namelist.ye;
-            obj.ze = 0;
-          elseif obj.ndim == 3
-            obj.xe = namelist.xe;
-            obj.ye = namelist.ye;
-            obj.ze = namelist.ze;
-          end
+          if ndims ==                      
+          obj.xe = namelist.xe;
+          obj.ze = namelist.ze;
           obj.attributes.particles_per_cell = namelist.particles_per_cell;          
         elseif nargin == 3 % also load particle binning info
           obj.particlebinning = particleBinningPath;
@@ -156,11 +140,9 @@ classdef SMILEI
         end
       
       obj.xi = obj.xe/sqrt(obj.mime);
-      obj.yi = obj.ye/sqrt(obj.mime);
       obj.zi = obj.ze/sqrt(obj.mime);
-      obj.grid = {1:1:numel(obj.xe),1:1:numel(obj.ye),1:1:numel(obj.ze)}; % originally, complete grid
+      obj.grid = {1:1:numel(obj.xe),1:1:numel(obj.ze)}; % originally, complete grid
       obj.ix = 1:1:numel(obj.xe);
-      obj.iy = 1:1:numel(obj.ye);
       obj.iz = 1:1:numel(obj.ze);
       
         
@@ -171,7 +153,7 @@ classdef SMILEI
       obj.it = 1:1:numel(obj.twpe);
       
       obj.fields_ = get_fields(obj);
-      if  nargin == 3
+      if strcmp(obj.software,'Smilei') && nargin == 3
         obj.fields_ = cat(1,obj.fields_(:),unique(namelist.deposited_quantity(:)));
       end
       toc
@@ -179,6 +161,8 @@ classdef SMILEI
       obj.attributes = get_attributes(obj);
     end
  
+    
+    
     function [varargout] = subsref(obj,idx)
       %SUBSREF handle indexing
 %      nargout
@@ -3133,7 +3117,7 @@ classdef SMILEI
       out = fields;
     end
     function out = get_gridsize(obj)
-      out = [obj.nx obj.ny obj.nz];
+      out = [numel(obj.xe) numel(obj.ze)];
     end
     function out = get_mass(obj)
       fileInfo = obj.info;
@@ -3176,9 +3160,6 @@ classdef SMILEI
     end
     function out = nx(obj)
       out = numel(obj.xi);
-    end
-    function out = ny(obj)
-      out = numel(obj.yi);
     end
     function out = nz(obj)
       out = numel(obj.zi);
@@ -3366,12 +3347,20 @@ classdef SMILEI
         error('Selected species have different mass and/or charge. This is not supported.')
       end
       nSpecies = numel(species);
-
-      n = zeros(obj.nx,obj.ny,obj.nz,obj.nt);
-      for iSpecies = species
-        pop_str = obj.species{iSpecies};
-        n = n + obj.charge(iSpecies)*obj.get_field(['Rho_' pop_str]); % Smilei stores charge density, so to get density we multiply with -1
-      end         
+      
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+        n = zeros(obj.nx,obj.nz,obj.nt);
+        for iSpecies = species
+          n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);
+        end        
+      elseif strcmp(obj.software,'Smilei')
+        n = zeros(obj.nx,obj.nz,obj.nt);
+        for iSpecies = species
+          pop_str = obj.species{iSpecies};
+          n = n + obj.charge(iSpecies)*obj.get_field(['Rho_' pop_str]); % Smilei stores charge density, so to get density we multiply with -1
+        end    
+      end      
       out = n;
     end
     function out = ne(obj)
@@ -5597,17 +5586,11 @@ classdef SMILEI
     function obj = set.xe(obj,value)
       obj.xe_ = value;
     end
-    function obj = set.ye(obj,value)
-      obj.ye_ = value;
-    end
     function obj = set.ze(obj,value)
       obj.ze_ = value;
     end
     function obj = set.xi(obj,value)
       obj.xi_ = value;
-    end
-    function obj = set.yi(obj,value)
-      obj.yi_ = value;
     end
     function obj = set.zi(obj,value)
       obj.zi_ = value;
@@ -5623,9 +5606,6 @@ classdef SMILEI
     end
     function obj = set.ix(obj,value)
       obj.ix_ = value;
-    end
-    function obj = set.iy(obj,value)
-      obj.iy_ = value;
     end
     function obj = set.iz(obj,value)
       obj.iz_ = value;
@@ -5646,17 +5626,11 @@ classdef SMILEI
     function value = get.xe(obj)
       value = obj.xe_;
     end
-    function value = get.ye(obj)
-      value = obj.ye_;
-    end
     function value = get.ze(obj)
       value = obj.ze_;
     end
     function value = get.xi(obj)
       value = obj.xi_;
-    end
-    function value = get.yi(obj)
-      value = obj.yi_;
     end
     function value = get.zi(obj)
       value = obj.zi_;
@@ -5672,9 +5646,6 @@ classdef SMILEI
     end
     function value = get.ix(obj)
       value = obj.ix_;
-    end
-    function value = get.iy(obj)
-      value = obj.iy_;
     end
     function value = get.iz(obj)
       value = obj.iz_;
@@ -6130,14 +6101,20 @@ classdef SMILEI
           %tt = tic;
           iter = iterations(iIter);
           str_iter = sprintf('%010.0f',iter);
-          
-          data_tmp = h5read(obj.file,...
-            ['/data/' str_iter '/' field],...
-            [obj.grid{3}(1) obj.grid{2}(1)  obj.grid{1}(1)]',... % start indices
-            [numel(obj.grid{3}) numel(obj.grid{2}) numel(obj.grid{1})]'); % number of counts
-          data_tmp = permute(data_tmp,[3 2 1]);
-
-          data(:,:,:,iIter) = data_tmp;
+          if strcmp(obj.software,'micPIC')
+            data_tmp = h5read(obj.file,...
+               ['/data/' str_iter '/' field],...
+               [obj.grid{1}(1) obj.grid{2}(1)],... % start indices
+               [numel(obj.grid{1}) numel(obj.grid{2})]); % number of counts
+            %disp(sprintf('Reading %s: [%g %g] datapoints starting at [%g %g]',field,numel(obj.grid{1}),numel(obj.grid{2}),obj.grid{1}(1),obj.grid{2}(1)))
+          elseif strcmp(obj.software,'Smilei') % Smilei
+            data_tmp = h5read(obj.file,...
+              ['/data/' str_iter '/' field],...
+              [obj.grid{2}(1) obj.grid{1}(1)]',... % start indices
+              [numel(obj.grid{2}) numel(obj.grid{1})]'); % number of counts
+            data_tmp = data_tmp';
+          end
+          data(:,:,iIter) = data_tmp;
           %toc(tt)
         end
 %       end

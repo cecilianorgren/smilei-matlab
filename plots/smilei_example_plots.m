@@ -2,6 +2,11 @@ filepath = '/Users/cno062/tesla/software/Smilei4.5/Smilei/cold_run/Fields0.h5';
 namelist = '/Users/cno062/tesla/software/Smilei4.5/Smilei/cold_run/Harris_new.py';
 sm = PIC(filepath,namelist);
 
+%%
+filepath = '/Users/cno062/tesla/software/Smilei4.5/Smilei/3d_turb/Fields0.h5';
+namelist = '/Users/cno062/tesla/software/Smilei4.5/Smilei/3d:turb/Harris3d.py';
+sm = PIC(filepath,namelist);
+
 %% Figure: Diagnostic 1
 pic = sm(sm.nt);
 xlim = pic.xi([1 end]);

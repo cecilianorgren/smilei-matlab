@@ -3292,24 +3292,13 @@ classdef SMILEI
       end
     end
     function out = Bx(obj)
-      if strcmp(obj.software,'micPIC')
-        out = get_field(obj,'bx')*obj.wpewce;
-      elseif strcmp(obj.software,'Smilei')
         out = get_field(obj,'Bx')*obj.wpewce;
-      end
     end
     function out = By(obj)
-      if strcmp(obj.software,'micPIC')
-        out = get_field(obj,'by')*obj.wpewce;
-      elseif strcmp(obj.software,'Smilei')
-        out = -get_field(obj,'Bz')*obj.wpewce;
-      end
+        out = get_field(obj,'By')*obj.wpewce;
     end
     function out = Bz(obj)
-      if strcmp(obj.software,'micPIC')
-        out = get_field(obj,'bz')*obj.wpewce;
-      elseif strcmp(obj.software,'Smilei')
-        out = get_field(obj,'By')*obj.wpewce;
+        out = get_field(obj,'Bz')*obj.wpewce;
       end
     end
     function out = Babs(obj)
@@ -3319,25 +3308,13 @@ classdef SMILEI
       out = sqrt(Bx.^2 + By.^2 + Bz.^2);     
     end
     function out = Ex(obj)
-      if strcmp(obj.software,'micPIC')
-        out = get_field(obj,'ex')*sqrt(obj.mime)*obj.wpewce^2;
-      elseif strcmp(obj.software,'Smilei')
-        out = get_field(obj,'Ex')*sqrt(obj.mime)*obj.wpewce^2;
-      end      
+        out = get_field(obj,'Ex')*sqrt(obj.mime)*obj.wpewce^2;      
     end
     function out = Ey(obj)
-      if strcmp(obj.software,'micPIC')
-        out = get_field(obj,'ey')*sqrt(obj.mime)*obj.wpewce^2;
-      elseif strcmp(obj.software,'Smilei')
-        out = -get_field(obj,'Ez')*sqrt(obj.mime)*obj.wpewce^2;
-      end      
+        out = get_field(obj,'Ey')*sqrt(obj.mime)*obj.wpewce^2;
     end
     function out = Ez(obj)
-      if strcmp(obj.software,'micPIC')
-        out = get_field(obj,'ez')*sqrt(obj.mime)*obj.wpewce^2;
-      elseif strcmp(obj.software,'Smilei')
-        out = get_field(obj,'Ey')*sqrt(obj.mime)*obj.wpewce^2;
-      end     
+        out = get_field(obj,'Ez')*sqrt(obj.mime)*obj.wpewce^2;
     end
     function out = PB(obj)
       % Magnetic field pressure
@@ -6131,13 +6108,26 @@ classdef SMILEI
           iter = iterations(iIter);
           str_iter = sprintf('%010.0f',iter);
           
+          if obj.ndim == 3
           data_tmp = h5read(obj.file,...
             ['/data/' str_iter '/' field],...
             [obj.grid{3}(1) obj.grid{2}(1)  obj.grid{1}(1)]',... % start indices
             [numel(obj.grid{3}) numel(obj.grid{2}) numel(obj.grid{1})]'); % number of counts
           data_tmp = permute(data_tmp,[3 2 1]);
+          
+            data(:,:,:,iIter) = data_tmp;
 
-          data(:,:,:,iIter) = data_tmp;
+          elseif obj.ndim == 2
+           
+              data_tmp = h5read(obj.file,...
+            ['/data/' str_iter '/' field],...
+            [ obj.grid{2}(1)  obj.grid{1}(1)]',... % start indices
+            [numel(obj.grid{2}) numel(obj.grid{1})]'); % number of counts
+          data_tmp = permute(data_tmp,[2 1]);             
+              
+              
+            data(:,:,iIter) = data_tmp;
+          end
           %toc(tt)
         end
 %       end

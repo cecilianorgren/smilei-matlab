@@ -3299,7 +3299,6 @@ classdef SMILEI
     end
     function out = Bz(obj)
         out = get_field(obj,'Bz')*obj.wpewce;
-      end
     end
     function out = Babs(obj)
       Bx = obj.Bx;

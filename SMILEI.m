@@ -3195,23 +3195,23 @@ classdef SMILEI
       if any(contains(obj.fields,'A')) % stored as field
        	out = get_field(obj,'A');
       else % calculate it
-         if strcmp(obj.software,'micPIC')
-          Bx =  obj.Bx;
-          Bz =  obj.Bz;
-          A = calc_A(obj.xi,obj.zi,Bx,Bz);
-        elseif strcmp(obj.software,'Smilei')
+%         if strcmp(obj.software,'micPIC')
+%          Bx =  obj.Bx;
+%          Bz =  obj.Bz;
+%          A = calc_A(obj.xi,obj.zi,Bx,Bz);
+%        elseif strcmp(obj.software,'Smilei')
           Bx =  obj.Bx; 
-          Bz =  obj.Bz;% coordinate tranformation built-in into .Bz and .By
-          A = calc_A(obj.xi,obj.zi,Bx,Bz);
-        end
+          By =  obj.By;% coordinate tranformation built-in into .Bz and .By
+          A = calc_A(obj.xi,obj.yi,Bx,By);
+%        end
         out = A;
       end
       % nested function
-      function out = calc_A(x,z,bx,bz)
+      function out = calc_A(x,y,bx,by)
         % Grid
         dx = x(2)-x(1);
-        dz = z(2)-z(1);
-        nz = numel(z);
+        dz = y(2)-y(1);
+        nz = numel(y);
         nx = numel(x);
 
 
@@ -3219,7 +3219,7 @@ classdef SMILEI
         A = bx*0;
         for itime = 1:ntimes
           bx_tmp = squeeze(bx(:,:,itime));
-          bz_tmp = squeeze(bz(:,:,itime));
+          bz_tmp = squeeze(by(:,:,itime));
           A_tmp = zeros(nx,nz);
           % Dont put zero right at the edge 
           ixm = 10;    

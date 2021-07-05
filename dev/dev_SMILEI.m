@@ -5,14 +5,14 @@ namelist = '/Users/cno062/tesla/software/Smilei4.5/Smilei/3d_turb/Harris3d.py';
 sm = SMILEI(filepath,namelist);
 
 %% Check if it corresponds to intended input
-pic = sm(2);
+pic = sm(sm.nt);
 tic
 Bx = pic.Bx; toc
 By = pic.By;
 Bz = pic.Bz;
-Ex = pic.Ex;
-Ey = pic.Ey;
-Ez = pic.Ez;
+%Ex = pic.Ex;
+%Ey = pic.Ey;
+%Ez = pic.Ez;
 x = pic.xi;
 y = pic.yi;
 z = pic.zi;

@@ -1,0 +1,33 @@
+
+#!/bin/bash
+#SBATCH --account=nn9496k
+#SBATCH --job-name=PIC-tenfjord
+#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-user=paul.tenfjord@uib.no
+##SBATCH --qos=devel
+#SBATCH --time=20:00:00
+
+#SBATCH --nodes=4    ### Number of Nodes
+
+#SBATCH --cpus-per-task=128    ### Number of threads per task (OMP threads)
+#SBATCH --ntasks-per-node=1   ### Number of tasks (MPI processes)
+##SBATCH --ntasks=128
+
+##SBATCH --time=00:40:00
+##SBATCH --time=100:00:00
+#mv log_* oldlogs/
+#SBATCH --output=log_output.%j.out
+#SBATCH --error=log_err.%j.err
+
+
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+export OMP_SCHEDULE=dynamic
+export OMP_PROC_BIND=true
+
+module load HDF5/1.10.7-gompi-2020b
+module load SciPy-bundle/2020.03-foss-2020a-Python-3.8.2
+module load HDF5/1.10.7-gompi-2020b
+# MPI processes are distributed over all your resources . First bind threads to node (socket), then force distribution between nodes (since each node only has 1 mpi). 
+# Dont remember what oversubscribe is, but it is needed 
+mpirun --oversubscribe -map-by ppr:1:socket --bind-to socket -report-bindings -np 4 /cluster/projects/nn9496k/Smilei/smilei Harris_newpert.py  # np is nodes * ntasks-per-node
+

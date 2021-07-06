@@ -1,10 +1,13 @@
 filepath = '/Users/cno062/tesla/software/Smilei4.5/Smilei/cold_run/Fields0.h5';
 namelist = '/Users/cno062/tesla/software/Smilei4.5/Smilei/cold_run/Harris_new.py';
-sm = PIC(filepath,namelist);
+
+filepath = '/Users/cno062/tesla/software/smilei/Smilei/baselinerun/newpert/Fields0.h5';
+namelist = '/Users/cno062/tesla/software/smilei/Smilei/baselinerun/newpert/Harris_newpert.py';
+sm = SMILEI(filepath,namelist);
 
 %%
 filepath = '/Users/cno062/tesla/software/Smilei4.5/Smilei/3d_turb/Fields0.h5';
-namelist = '/Users/cno062/tesla/software/Smilei4.5/Smilei/3d:turb/Harris3d.py';
+namelist = '/Users/cno062/tesla/software/Smilei4.5/Smilei/3d_turb/Harris3d.py';
 sm = PIC(filepath,namelist);
 
 %% Figure: Diagnostic 1

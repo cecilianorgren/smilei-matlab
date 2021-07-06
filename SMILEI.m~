@@ -4,7 +4,7 @@ classdef SMILEI
 % to load and manipulate the data. For a complete list of methods
 % type >> methods SMILEI
 %
-% Load SMILEI object:
+% Usage, loading SMILEI object:
 %   pic = SMILEI(pathFields,pathNameList) % minimum input
 %   pic = SMILEI(pathFields,pathNameList,pathParticleBinning) - % also loads pressures         
 %
@@ -25,7 +25,7 @@ classdef SMILEI
 %   xe, ye, ze - x, y, z coordinate in terms of electron inertial lengths
 %   xi, yi, zi - x, y, z coordinate in terms of proton inertial lengths
 %
-% Load data using SMILEI object:
+% Usage, loading data using SMILEI object
 %
 %   Bx = pic(1).Bx;
   

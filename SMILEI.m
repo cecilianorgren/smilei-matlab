@@ -294,6 +294,16 @@ classdef SMILEI
       inds = obj.ind_from_lim(obj.xi_,value,varargin{:});
       obj = obj.subset('x',inds);      
     end
+    function obj = ylim(obj,value,varargin)
+      % pic.ZLIM Get subset of zi (z/di).
+      %   pic.ZLIM(100) - gives closest index
+      %   pic.ZLIM([100 110]) - gives all indiced within range
+      %   pic.ZLIM(10:1:110) - gives all indices that matches exactly 
+      %
+      % See also: PIC.XLIM, PIC.TWPELIM, PIC.TWCILIM 
+      inds = obj.ind_from_lim(obj.yi_,value,varargin{:});
+      obj = obj.subset('y',inds);
+    end
     function obj = zlim(obj,value,varargin)
       % pic.ZLIM Get subset of zi (z/di).
       %   pic.ZLIM(100) - gives closest index
@@ -361,11 +371,24 @@ classdef SMILEI
               obj.xivar.(field_names{ifield}) = obj.xivar.(field_names{ifield})(inds);
             end
           end
+        case 'y'
+          obj.ye_ = obj.ye_(inds);
+          obj.yi_ = obj.yi_(inds);      
+          obj.grid_{2} = obj.grid_{2}(inds);
+          obj.iy_ = obj.grid_{2};
+          if strcmp(obj.software,'Smilei') 
+          
+          else
+            field_names = fields(obj.yivar);
+            for ifield = 1:numel(field_names)
+              obj.yivar.(field_names{ifield}) = obj.yivar.(field_names{ifield})(inds);
+            end
+          end
         case 'z'
           obj.ze_ = obj.ze_(inds);
           obj.zi_ = obj.zi_(inds);      
-          obj.grid_{2} = obj.grid_{2}(inds);
-          obj.iz_ = obj.grid_{2};  
+          obj.grid_{3} = obj.grid_{3}(inds);
+          obj.iz_ = obj.grid_{3};  
           if strcmp(obj.software,'Smilei') 
           
           else
@@ -3413,7 +3436,7 @@ classdef SMILEI
         var = zeros(obj.nx,obj.nz,obj.nt);
         for iSpecies = species
           pop_str = obj.species{iSpecies};
-          var = var + -1*obj.charge(iSpecies)*obj.get_field(['Jz_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+          var = var + obj.charge(iSpecies)*obj.get_field(['Jy_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
         end
       end
       out = var;    
@@ -3436,7 +3459,7 @@ classdef SMILEI
         var = zeros(obj.nx,obj.nz,obj.nt);
         for iSpecies = species
           pop_str = obj.species{iSpecies};
-          var = var + obj.charge(iSpecies)*obj.get_field(['Jy_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+          var = var + obj.charge(iSpecies)*obj.get_field(['Jz_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
         end
       end
       out = var;  

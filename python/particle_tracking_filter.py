@@ -110,17 +110,30 @@ def particle_initialization(Ntot_target,nfun):
 	x_y_weight[2,:] = weight
 	#print(np.shape(x_y_weight))
 
-	return Nfinal, x_part, y_part, weight, n_center, M
+	#return Nfinal, x_part, y_part, weight, n_center, M
 
-	#return x_y_weight
+	return x_y_weight
 
 # diagnostics
-n_part_final, x_part, y_part, weight, n_center, num_macro_particles_in_cell = particle_initialization(Ntot_target[0],n)
+#n_part_final, x_part, y_part, weight, n_center, num_macro_particles_in_cell = particle_initialization(Ntot_target[0],n)
 
 
 # run
-#xyw = particle_initialization(Ntot_target[0],n)
+xyw = particle_initialization(Ntot_target[0],n)
 #print(np.shape(xyw))
+
+class particles():
+	def __init__(self,x,y,w):
+		self.x = x
+		self.y = y
+		self.w = w
+
+
+part = particles(xyw[0,:],xyw[1,:],xyw[2,:])
+
+def my_filter(particles):
+	return particles.x>6
+
 
 
 
@@ -131,8 +144,8 @@ if True:
 	print('total number of target particles = ' + str(Ntot_target))
 	#print(type(len(x)))
 	#print(type(npart))
-	print('average number of particles per cell = ' + str(Ntot_target/(nx-1)/(ny-1)))
-	print('total number of particles after initiation: ' + str(n_part_final))
+	#print('average number of particles per cell = ' + str(Ntot_target/(nx-1)/(ny-1)))
+	#print('total number of particles after initiation: ' + str(Nfinal))
 
 
 	# plot results
@@ -140,18 +153,8 @@ if True:
 
 	fig, (ax1, ax2, ax2b, ax3) = plt.subplots(4 , 1)
 
-	plt1 = ax1.pcolormesh(x,y,n_center.T,cmap='Spectral')
-	fig.colorbar(plt1, ax=ax1)
 
-	plt2 = ax2.pcolormesh(x,y,num_macro_particles_in_cell.T,cmap='Spectral')
-	cbar = fig.colorbar(plt2, ax=ax2)
-	cbar.set_label('# number of macroparticles', rotation=270)
-
-	plt2b = ax2b.pcolormesh(x,y,np.ceil(num_macro_particles_in_cell.T),cmap='Spectral')
-	cbar = fig.colorbar(plt2b, ax=ax2b)
-	cbar.set_label('# number of macroparticles roundup', rotation=270)
-
-	plt3 = ax3.scatter(x_part,y_part,s=10,c=weight,linewidths=0,cmap='Spectral')
+	plt3 = ax3.scatter(part.x,part.y,s=10,c=part.w,linewidths=0,cmap='Spectral')
 	fig.colorbar(plt3, ax=ax3)
 	ax3.set_xlim(x[0], x[-1])
 	ax3.set_ylim(y[0], y[-1])

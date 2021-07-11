@@ -33,7 +33,7 @@ nb = 0.1*n0              # background density
 
 # total number of particles for each species, this is only a target, 
 # these will be distributed over the entire grid
-Ntot_target = np.array([100000])
+Ntot_target = np.array([10000])
 
 # define grid
 nx, ny = list(box_size/np.array([1/resx,1/resy])+np.array([1,1]))
@@ -130,18 +130,35 @@ class particles():
 
 
 part = particles(xyw[0,:],xyw[1,:],xyw[2,:])
+print(part)
 
+type(part)
 def my_filter(particles):
-	return particles.x>6
+	# To get a decent coverage, one could take every nth particle, this would
+	# give more particles where the density is higher. Although maybe there would # be too many particles far out
+
+	npart = len(particles.x)
+
+	#output = (particles.x>1)*(particles.x<7)
+	#output
+	out = np.full(npart, False, dtype=bool)
+	step = round(npart/1000)
+	ntrack = 1000
+	for i in np.arange(0,npart,step):
+	#for i in np.round(np.linspace(0,npart,num=ntrack)):
+		out[i] = True
+	return out
 
 
-
+part_filt_boolean = my_filter(part)
+part_filt = particles(part.x[part_filt_boolean],part.y[part_filt_boolean],part.w[part_filt_boolean])
+len(part_filt.x)
 
 if True:
 
-	print('box_size = ' + str(box_size) + ' de')
-	print('grid: ' + str(x.size) + 'x' + str(y.size) + ' cells')
-	print('total number of target particles = ' + str(Ntot_target))
+	#print('box_size = ' + str(box_size) + ' de')
+	#print('grid: ' + str(x.size) + 'x' + str(y.size) + ' cells')
+	#print('total number of target particles = ' + str(Ntot_target))
 	#print(type(len(x)))
 	#print(type(npart))
 	#print('average number of particles per cell = ' + str(Ntot_target/(nx-1)/(ny-1)))
@@ -150,14 +167,17 @@ if True:
 
 	# plot results
 
+	fig, (ax1, ax2, ax3) = plt.subplots(3, 1)
 
-	fig, (ax1, ax2, ax2b, ax3) = plt.subplots(4 , 1)
+	plt1 = ax1.scatter(part.x,part.y,s=10,c=part.w,linewidths=0,cmap='Spectral')
+	fig.colorbar(plt1, ax=ax1)
+	ax1.set_xlim(x[0], x[-1])
+	ax1.set_ylim(y[0], y[-1])
 
-
-	plt3 = ax3.scatter(part.x,part.y,s=10,c=part.w,linewidths=0,cmap='Spectral')
-	fig.colorbar(plt3, ax=ax3)
-	ax3.set_xlim(x[0], x[-1])
-	ax3.set_ylim(y[0], y[-1])
+	plt2 = ax2.scatter(part_filt.x,part_filt.y,s=10,c=part_filt.w,linewidths=0,cmap='Spectral')
+	fig.colorbar(plt2, ax=ax2)
+	ax2.set_xlim(x[0], x[-1])
+	ax2.set_ylim(y[0], y[-1])
 
 	plt.show()
 

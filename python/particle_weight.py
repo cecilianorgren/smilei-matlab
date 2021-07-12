@@ -5,6 +5,7 @@ import random as rd
 import matplotlib.pyplot as plt
 import time
 
+print('--------------------------------------------')
 # Here I define some python variables:
 # in particular I define here the spatial & temporal resolution which do not exist anymore in the new python version
 resy = 4.               # spatial resolution along y axis (i.e number of cell per de)
@@ -34,7 +35,8 @@ nb = 0.1*n0              # background density
 
 # total number of particles for each species, this is only a target, 
 # these will be distributed over the entire grid
-Ntot_target = np.array([1e6])
+Ntot_target = np.array([1e5])
+print(type(Ntot_target))
 
 # define grid
 nx, ny = list(box_size/np.array([1/resx,1/resy])+np.array([1,1]))
@@ -46,7 +48,8 @@ dy = y[1]-y[0]
 x_center = x[0:-1] + 0.5*dx
 y_center = y[0:-1] + 0.5*dy
 
-
+doAppend = False
+doTwoLoops = True
 
 # density profile
 def n(x,y):
@@ -55,7 +58,7 @@ def n(x,y):
 
 
 # Calculate density in center of each cell
-def particle_initialization(Ntot_target,nfun):
+def particle_initialization(Mtot_target,nfun):
        
 	# 	1. calculate total density
 	# 	2. loop through cells, for each cell: 
@@ -74,60 +77,78 @@ def particle_initialization(Ntot_target,nfun):
 	N         = np.empty([int(nx)-1, int(ny)-1]) # N - number of micro particles in each cell
 	Nfrac     = np.empty([int(nx)-1, int(ny)-1]) # N/Ntot - fraction of total number of microparticles in each cell
 	M         = np.empty([int(nx)-1, int(ny)-1]) # M - number of macro particles in each cell
-	x_part    = [] # particle x-coordinate
-	y_part    = [] # particle y-coordinate
-	weight    = [] # particle weight
-	x_part    = np.zeros(Ntot_target*2)
-	y_part    = np.zeros(Ntot_target*2)
-	weight    = np.zeros(Ntot_target*2)
-	filled    = np.full(Ntot_target*2,False,dtype=bool)
+	if doTwoLoops:
+		# first calculate the required number of particles
+		for i in np.arange(0,int(nx)-1):
+			for j in np.arange(0,int(ny)-1):
+				# Calculate how many macro particles should go in each cell
+				cell_density = nfun(x_center[i],y_center[j])
+				cell_hypervolume = dx*dy
+				N[i,j] = cell_density*cell_hypervolume # density x area, number of micro particles in this cell, non-integer
+				Nfrac[i,j] = N[i,j]/Ntot # fraction of micro particles that is in this cell, i.e. for a uniform density, all numbers are the same
+				M[i,j] = Nfrac[i,j]*Mtot_target # number of macro particles in each cell, non-integer
+				#Mceil[i,j] = m.ceil(M[i,j]) 
+		Mtot = sum(np.ceil(M).flatten())
+		print(Mtot)
 
-	p_count = 0 # particle counter
-	#append_transition = True
+	else:
 
-	for i in np.arange(0,int(nx)-1):
-		for j in np.arange(0,int(ny)-1):
-			# Calculate how many macro particles should go in each cell
-			cell_density = nfun(x_center[i],y_center[j])
-			cell_hypervolume = dx*dy
-			N[i,j] = cell_density*cell_hypervolume # density x area, number of micro particles in this cell, non-integer
-			Nfrac[i,j] = N[i,j]/Ntot # fraction of micro particles that is in this cell, i.e. for a uniform density, all numbers are the same
-			M[i,j] = Nfrac[i,j]*Ntot_target # number of macro particles in each cell, non-integer
-			M_roundup = m.ceil(M[i,j]) # round up to nearest integer
+		if doAppend:
+			x_part    = [] # particle x-coordinate
+			y_part    = [] # particle y-coordinate
+			weight    = [] # particle weight
+		else:
+			Nroof = int(Ntot_target*1.1)
+			x_part    = np.zeros(Nroof)
+			y_part    = np.zeros(Nroof)
+			weight    = np.zeros(Nroof)
+			filled    = np.full(Nroof,False,dtype=bool)
 
-			p_count = p_count + M_roundup # increment particle counter
+		p_count = 0 # particle counter
+		#append_transition = True
 
-			# Calculate weigths of particles, microparticles/macroparticles
-			weight_cell = N[i,j]/M_roundup			
+		for i in np.arange(0,int(nx)-1):
+			for j in np.arange(0,int(ny)-1):
+				# Calculate how many macro particles should go in each cell
+				cell_density = nfun(x_center[i],y_center[j])
+				cell_hypervolume = dx*dy
+				N[i,j] = cell_density*cell_hypervolume # density x area, number of micro particles in this cell, non-integer
+				Nfrac[i,j] = N[i,j]/Ntot # fraction of micro particles that is in this cell, i.e. for a uniform density, all numbers are the same
+				M[i,j] = Nfrac[i,j]*Ntot_target # number of macro particles in each cell, non-integer
+				M_roundup = m.ceil(M[i,j]) # round up to nearest integer
 
-			# Calculate particle positions		
-			xlo = x[i]
-			xhi = x[i+1]
-			ylo = y[j]
-			yhi = y[j+1]
+				p_count = p_count + M_roundup # increment particle counter
 
-			new_x = np.random.uniform(xlo,xhi,size=M_roundup)
-			new_y = np.random.uniform(ylo,yhi,size=M_roundup)
-			new_weight = np.ones([M_roundup])*weight_cell
+				# Calculate weigths of particles, microparticles/macroparticles
+				weight_cell = N[i,j]/M_roundup			
 
-			if True:#p_count < Ntot_target:
-				istart = p_count - M_roundup
-				istop = p_count
-				#print(istart)
-				#print(istop)
-				#print(p_count)
-				#print(M_roundup)
-				x_part[istart:istop] = new_x
-				y_part[istart:istop] = new_y
-				weight[istart:istop] = new_weight
-				filled[istart:istop] = True
-				#if append_transition:
+				# Calculate particle positions		
+				xlo = x[i]
+				xhi = x[i+1]
+				ylo = y[j]
+				yhi = y[j+1]
 
-				#else:
-				#	x_part = np.append(x_part,new_x)
-				#	y_part = np.append(y_part,new_y)
-				#	weight = np.append(weight,new_weight)
-			#else:
+				new_x = np.random.uniform(xlo,xhi,size=M_roundup)
+				new_y = np.random.uniform(ylo,yhi,size=M_roundup)
+				new_weight = np.ones([M_roundup])*weight_cell
+
+				if doAppend:
+					x_part = np.append(x_part,new_x)
+					y_part = np.append(y_part,new_y)
+					weight = np.append(weight,new_weight)
+				else:
+					#p_count < Ntot_target:
+					istart = p_count - M_roundup
+					istop = p_count
+					#print(istart)
+					#print(istop)
+					#print(p_count)
+					#print(M_roundup)
+					x_part[istart:istop] = new_x
+					y_part[istart:istop] = new_y
+					weight[istart:istop] = new_weight
+					filled[istart:istop] = True
+					#if append_transition:
 
 	#print(weight_cell)
 	#print(new_weight[-1])
@@ -140,18 +161,24 @@ def particle_initialization(Ntot_target,nfun):
 	#print(weight[Nfinal-1])
 	#print(filled[Nfinal])
 
-	x_part_filled = x_part[filled]
-	y_part_filled = x_part[filled]
-	weight_filled = x_part[filled]
-	#print(x_part_filled[-1])
-	x_y_weight = np.empty([3,Nfinal])
-	x_y_weight[0,:] = x_part_filled
-	x_y_weight[1,:] = y_part_filled
-	x_y_weight[2,:] = weight_filled
+	if doAppend:
+		x_y_weight = np.empty([3,Nfinal])
+		x_y_weight[0,:] = x_part
+		x_y_weight[1,:] = y_part
+		x_y_weight[2,:] = weight
+	else:
+		x_part = x_part[filled]
+		y_part = y_part[filled]
+		weight = weight[filled]
+		#print(x_part_filled[-1])
+		x_y_weight = np.empty([3,Nfinal])
+		x_y_weight[0,:] = x_part
+		x_y_weight[1,:] = y_part
+		x_y_weight[2,:] = weight
 	
 	print(np.shape(x_y_weight))
 
-	return Nfinal, x_part_filled, y_part_filled, weight_filled, n_center, M
+	return Nfinal, x_part, y_part, weight, n_center, M
 
 	#return x_y_weight
 
@@ -163,7 +190,10 @@ def particle_initialization(Ntot_target,nfun):
 tic = time.time()
 n_part_final, x_part, y_part, weight, n_center, num_macro_particles_in_cell = particle_initialization(Ntot_target[0],n)
 toc = time.time()
-print('Elapsed time is ' + str(toc - tic) + ' seconds')
+t_duration = toc-tic
+
+print('Elapsed time is ' + str(t_duration) + ' seconds')
+print('Elapsed time is ' + str(t_duration/n_part_final) + ' seconds/particle')
 print(weight[-3:-1])
 print(x_part[-3:-1])
 # run

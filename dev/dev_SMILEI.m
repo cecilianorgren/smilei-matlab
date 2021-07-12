@@ -43,5 +43,7 @@ hold(hca,'off')
 %% Implement 2D particle_initialization
 filepath = '/Users/cno062/betzy/stableSmilei/namelist_dev/Fields0.h5';
 namelist = '/Users/cno062/betzy/stableSmilei/namelist_dev/Harris_dev.py';
+filepath = '/Users/cecilia/Discs/betzy/stableSmilei/namelist_dev/Fields0.h5';
+namelist = '/Users/cecilia/Discs/betzy/stableSmilei/namelist_dev/Harris_dev.py';
 %sm = PIC(filepath,namelist);
 sm = SMILEI(filepath,namelist);

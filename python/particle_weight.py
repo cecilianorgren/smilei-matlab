@@ -3,6 +3,7 @@ import math as m
 import numpy as np
 import random as rd
 import matplotlib.pyplot as plt
+import time
 
 # Here I define some python variables:
 # in particular I define here the spatial & temporal resolution which do not exist anymore in the new python version
@@ -33,7 +34,7 @@ nb = 0.1*n0              # background density
 
 # total number of particles for each species, this is only a target, 
 # these will be distributed over the entire grid
-Ntot_target = np.array([100000])
+Ntot_target = np.array([1e6])
 
 # define grid
 nx, ny = list(box_size/np.array([1/resx,1/resy])+np.array([1,1]))
@@ -55,6 +56,7 @@ def n(x,y):
 
 # Calculate density in center of each cell
 def particle_initialization(Ntot_target,nfun):
+       
 	# 	1. calculate total density
 	# 	2. loop through cells, for each cell: 
 	#		2.1. calculate the average density in that cell (i just took the center density as rough estimate)
@@ -75,6 +77,13 @@ def particle_initialization(Ntot_target,nfun):
 	x_part    = [] # particle x-coordinate
 	y_part    = [] # particle y-coordinate
 	weight    = [] # particle weight
+	x_part    = np.zeros(Ntot_target*2)
+	y_part    = np.zeros(Ntot_target*2)
+	weight    = np.zeros(Ntot_target*2)
+	filled    = np.full(Ntot_target*2,False,dtype=bool)
+
+	p_count = 0 # particle counter
+	#append_transition = True
 
 	for i in np.arange(0,int(nx)-1):
 		for j in np.arange(0,int(ny)-1):
@@ -85,6 +94,8 @@ def particle_initialization(Ntot_target,nfun):
 			Nfrac[i,j] = N[i,j]/Ntot # fraction of micro particles that is in this cell, i.e. for a uniform density, all numbers are the same
 			M[i,j] = Nfrac[i,j]*Ntot_target # number of macro particles in each cell, non-integer
 			M_roundup = m.ceil(M[i,j]) # round up to nearest integer
+
+			p_count = p_count + M_roundup # increment particle counter
 
 			# Calculate weigths of particles, microparticles/macroparticles
 			weight_cell = N[i,j]/M_roundup			
@@ -98,42 +109,79 @@ def particle_initialization(Ntot_target,nfun):
 			new_x = np.random.uniform(xlo,xhi,size=M_roundup)
 			new_y = np.random.uniform(ylo,yhi,size=M_roundup)
 			new_weight = np.ones([M_roundup])*weight_cell
-			x_part = np.append(x_part,new_x)
-			y_part = np.append(y_part,new_y)
-			weight = np.append(weight,new_weight)
 
-	Nfinal = len(x_part)
+			if True:#p_count < Ntot_target:
+				istart = p_count - M_roundup
+				istop = p_count
+				#print(istart)
+				#print(istop)
+				#print(p_count)
+				#print(M_roundup)
+				x_part[istart:istop] = new_x
+				y_part[istart:istop] = new_y
+				weight[istart:istop] = new_weight
+				filled[istart:istop] = True
+				#if append_transition:
 
+				#else:
+				#	x_part = np.append(x_part,new_x)
+				#	y_part = np.append(y_part,new_y)
+				#	weight = np.append(weight,new_weight)
+			#else:
+
+	#print(weight_cell)
+	#print(new_weight[-1])
+	#print(istart)
+	#print(istop)
+	#print(weight[istart:istop])
+	#print(weight[istop-1])
+
+	Nfinal = p_count
+	#print(weight[Nfinal-1])
+	#print(filled[Nfinal])
+
+	x_part_filled = x_part[filled]
+	y_part_filled = x_part[filled]
+	weight_filled = x_part[filled]
+	#print(x_part_filled[-1])
 	x_y_weight = np.empty([3,Nfinal])
-	x_y_weight[0,:] = x_part
-	x_y_weight[1,:] = y_part
-	x_y_weight[2,:] = weight
-	#print(np.shape(x_y_weight))
+	x_y_weight[0,:] = x_part_filled
+	x_y_weight[1,:] = y_part_filled
+	x_y_weight[2,:] = weight_filled
+	
+	print(np.shape(x_y_weight))
 
-	return Nfinal, x_part, y_part, weight, n_center, M
+	return Nfinal, x_part_filled, y_part_filled, weight_filled, n_center, M
 
 	#return x_y_weight
 
+	
+
+
 # diagnostics
+
+tic = time.time()
 n_part_final, x_part, y_part, weight, n_center, num_macro_particles_in_cell = particle_initialization(Ntot_target[0],n)
-
-
+toc = time.time()
+print('Elapsed time is ' + str(toc - tic) + ' seconds')
+print(weight[-3:-1])
+print(x_part[-3:-1])
 # run
 #xyw = particle_initialization(Ntot_target[0],n)
 #print(np.shape(xyw))
 
 
 
-if True:
 
-	print('box_size = ' + str(box_size) + ' de')
-	print('grid: ' + str(x.size) + 'x' + str(y.size) + ' cells')
-	print('total number of target particles = ' + str(Ntot_target))
-	#print(type(len(x)))
-	#print(type(npart))
-	print('average number of particles per cell = ' + str(Ntot_target/(nx-1)/(ny-1)))
-	print('total number of particles after initiation: ' + str(n_part_final))
+print('box_size = ' + str(box_size) + ' de')
+print('grid: ' + str(x.size) + 'x' + str(y.size) + ' cells')
+print('total number of target particles = ' + str(Ntot_target))
+#print(type(len(x)))
+#print(type(npart))
+print('average number of particles per cell = ' + str(Ntot_target/(nx-1)/(ny-1)))
+print('total number of particles after initiation: ' + str(n_part_final))
 
+if False:
 
 	# plot results
 

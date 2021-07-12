@@ -2991,18 +2991,12 @@ classdef SMILEI
       fido = fopen(tmp_file, 'wt');
       tline = fgetl(fidi);
       while ischar(tline)
-        ihash = strfind(tline,'#');
-        if ~isempty(tline) && ~isempty(ihash) % we have a # somewhere
-          if strcmp(tline(1),'#') % skip entire line
-            tline = fgetl(fidi);
-            continue
-          else % only save whats before the #
-            fprintf(fido, '%s\n', tline(1:ihash(1)-1));            
-          end
-          tline = fgetl(fidi);
-          continue
+        if ~isempty(tline) 
+          if strcmp(tline(1),'#')
+          && ~isempty(strfind(tline,'#'))
+          %line to keep
+          fprintf(fido, '%s\n', tline);
         end
-        fprintf(fido, '%s\n', tline);        
         tline = fgetl(fidi);
       end
       fclose(fidi);
@@ -3430,7 +3424,6 @@ classdef SMILEI
       n = zeros(obj.nx,obj.ny,obj.nz,obj.nt);
       for iSpecies = species
         pop_str = obj.species{iSpecies};
-        %%% Why is the charge here??????
         n = n + obj.charge(iSpecies)*obj.get_field(['Rho_' pop_str]); % Smilei stores charge density, so to get density we multiply with -1
       end         
       out = n;

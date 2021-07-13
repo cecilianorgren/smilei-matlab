@@ -145,47 +145,49 @@ classdef SMILEI
       %   xi, yi, zi - x, y, z coordinate in terms of proton inertial lengths
       %   
       
-      tic; 
+      if nargin<2
+        error(sprintf('# input = %g: Wrong number of input arguments for Smilei simulation.',nargin))
+      end
+      
+      tic; % time loading, and 
       obj.file = h5filePath; 
       obj.info = h5info(h5filePath); 
-      
+      %
       % Check if it's SMILEI or micPIC (mic stands for Michael)
       % Not needed
       obj.software = get_software(obj);
-            
-      if nargin == 2
-        % meta data
-        obj.namelist = nameList;
-        namelist = parse_namelist(obj);
-        obj.ndim = namelist.ndim;
-        obj.dims = namelist.dims;         
-        obj.species = namelist.name;
-        obj.charge = namelist.charge;
-        obj.mass = namelist.mass;
-        obj.mime = namelist.mime;
-        obj.wpewce = namelist.wpewce;
-        obj.teti = namelist.teti;
-        % grid
-        if obj.ndim == 1
-          obj.xe = namelist.xe;
-          obj.ye = 0;
-          obj.ze = 0;
-        elseif obj.ndim == 2
-          obj.xe = namelist.xe;
-          obj.ye = namelist.ye;
-          obj.ze = 0;
-        elseif obj.ndim == 3
-          obj.xe = namelist.xe;
-          obj.ye = namelist.ye;
-          obj.ze = namelist.ze;
-        end
-        obj.attributes.particles_per_cell = namelist.particles_per_cell;          
-      elseif nargin == 3 % also load particle binning info
+         
+      % meta data
+      obj.namelist = nameList;
+      namelist = parse_namelist(obj);
+      obj.ndim = namelist.ndim;
+      obj.dims = namelist.dims;         
+      obj.species = namelist.name;
+      obj.charge = namelist.charge;
+      obj.mass = namelist.mass;
+      obj.mime = namelist.mime;
+      obj.wpewce = namelist.wpewce;
+      obj.teti = namelist.teti;
+      % grid
+      if obj.ndim == 1
+        obj.xe = namelist.xe;
+        obj.ye = 0;
+        obj.ze = 0;
+      elseif obj.ndim == 2
+        obj.xe = namelist.xe;
+        obj.ye = namelist.ye;
+        obj.ze = 0;
+      elseif obj.ndim == 3
+        obj.xe = namelist.xe;
+        obj.ye = namelist.ye;
+        obj.ze = namelist.ze;
+      end
+      obj.attributes.particles_per_cell = namelist.particles_per_cell;      
+                                 
+      if nargin == 3 % also load particle binning info
         obj.particlebinning = particleBinningPath;
         obj.attributes.deposited_quantity = namelist.deposited_quantity;
-        obj.attributes.deposited_species = namelist.deposited_species;
-      else          
-        error(sprintf('nInput = %g: Wrong number of input arguments for Smilei simulation.',nargin))
+        obj.attributes.deposited_species = namelist.deposited_species;      
       end
       
       obj.xi = obj.xe/sqrt(obj.mime);
@@ -2991,12 +2993,18 @@ classdef SMILEI
       fido = fopen(tmp_file, 'wt');
       tline = fgetl(fidi);
       while ischar(tline)
-        if ~isempty(tline) 
-          if strcmp(tline(1),'#')
-          && ~isempty(strfind(tline,'#'))
-          %line to keep
-          fprintf(fido, '%s\n', tline);
+        ihash = strfind(tline,'#');
+        if ~isempty(tline) && ~isempty(ihash) % we have a # somewhere
+          if strcmp(tline(1),'#') % skip entire line
+            tline = fgetl(fidi);
+            continue
+          else % only save whats before the #
+            fprintf(fido, '%s\n', tline(1:ihash(1)-1));            
+          end
+          tline = fgetl(fidi);
+          continue
         end
+        fprintf(fido, '%s\n', tline);        
         tline = fgetl(fidi);
       end
       fclose(fidi);
@@ -3064,14 +3072,15 @@ classdef SMILEI
         out.ze = 0:cell_length(3):(box_size(3));
       end     
       
+      % Don't 
       % particle binning
       deposited_quantity = regexpi(buffer, '(?<=deposited_quantity\s*=\s*)("\w*")', 'match');      
       species = regexpi(buffer, '(?<=species\s*=\s*[)("\w*")', 'match');
-       for ii = 1:numel(deposited_quantity)
+      for ii = 1:numel(deposited_quantity)
         deposited_quantity{ii} = strrep(deposited_quantity{ii},'"','');
         species{ii} = strrep(species{ii},'"','');
         species{ii} = strrep(species{ii},'[','');
-       end
+      end
       out.deposited_quantity = deposited_quantity;
       out.deposited_species = species;            
       
@@ -3424,6 +3433,7 @@ classdef SMILEI
       n = zeros(obj.nx,obj.ny,obj.nz,obj.nt);
       for iSpecies = species
         pop_str = obj.species{iSpecies};
+        %%% Why is the charge here??????
         n = n + obj.charge(iSpecies)*obj.get_field(['Rho_' pop_str]); % Smilei stores charge density, so to get density we multiply with -1
       end         
       out = n;

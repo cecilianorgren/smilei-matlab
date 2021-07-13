@@ -35,7 +35,7 @@ nb = 0.1*n0              # background density
 
 # total number of particles for each species, this is only a target, 
 # these will be distributed over the entire grid
-Ntot_target = np.array([1e5])
+Ntot_target = np.array([1e7])
 print(type(Ntot_target))
 
 # define grid
@@ -88,9 +88,43 @@ def particle_initialization(Mtot_target,nfun):
 				Nfrac[i,j] = N[i,j]/Ntot # fraction of micro particles that is in this cell, i.e. for a uniform density, all numbers are the same
 				M[i,j] = Nfrac[i,j]*Mtot_target # number of macro particles in each cell, non-integer
 				#Mceil[i,j] = m.ceil(M[i,j]) 
-		Mtot = sum(np.ceil(M).flatten())
-		print(Mtot)
+		Mceil = np.ceil(M)
+		Mtot = sum(Mceil.flatten()) # total number of macro particles
+		print('Mtot = ' +  str(Mtot))
 
+		# Now initialize the arrays with the right dimensions Mtot and run loop again filling upp the arrays		
+		x_part    = np.zeros(Mtot)
+		y_part    = np.zeros(Mtot)
+		weight    = np.zeros(Mtot)
+		filled    = np.full(Mtot,False,dtype=bool)
+		p_count = 0
+		for i in np.arange(0,int(nx)-1):
+			#print(i)
+			for j in np.arange(0,int(ny)-1):
+				p_count = p_count + Mceil[i,j] # increment particle counter
+				# Calculate weigths of particles, microparticles/macroparticles
+				weight_cell = N[i,j]/Mceil[i,j]
+
+				# Calculate particle positions		
+				xlo = x[i]
+				xhi = x[i+1]
+				ylo = y[j]
+				yhi = y[j+1]		
+
+				new_x = np.random.uniform(xlo,xhi,size=Mceil[i,j])
+				new_y = np.random.uniform(ylo,yhi,size=Mceil[i,j])
+				new_weight = np.ones(Mceil[i,j])*weight_cell
+
+				istart = p_count - Mceil[i,j]
+				istop = p_count
+				#print(istart)
+				#print(istop)
+				#print(p_count)
+				#print(M_roundup)
+				x_part[istart:istop] = new_x
+				y_part[istart:istop] = new_y
+				weight[istart:istop] = new_weight
+				filled[istart:istop] = True
 	else:
 
 		if doAppend:
@@ -98,7 +132,7 @@ def particle_initialization(Mtot_target,nfun):
 			y_part    = [] # particle y-coordinate
 			weight    = [] # particle weight
 		else:
-			Nroof = int(Ntot_target*1.1)
+			Nroof = int(Ntot_target*1.4)
 			x_part    = np.zeros(Nroof)
 			y_part    = np.zeros(Nroof)
 			weight    = np.zeros(Nroof)
@@ -162,10 +196,10 @@ def particle_initialization(Mtot_target,nfun):
 	#print(filled[Nfinal])
 
 	if doAppend:
-		x_y_weight = np.empty([3,Nfinal])
-		x_y_weight[0,:] = x_part
-		x_y_weight[1,:] = y_part
-		x_y_weight[2,:] = weight
+			x_y_weight = np.empty([3,Nfinal])
+			x_y_weight[0,:] = x_part
+			x_y_weight[1,:] = y_part
+			x_y_weight[2,:] = weight
 	else:
 		x_part = x_part[filled]
 		y_part = y_part[filled]

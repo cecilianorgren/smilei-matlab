@@ -145,47 +145,49 @@ classdef SMILEI
       %   xi, yi, zi - x, y, z coordinate in terms of proton inertial lengths
       %   
       
-      tic; 
+      if nargin<2
+        error(sprintf('# input = %g: Wrong number of input arguments for Smilei simulation.',nargin))
+      end
+      
+      tic; % time loading, and 
       obj.file = h5filePath; 
       obj.info = h5info(h5filePath); 
-      
+      %
       % Check if it's SMILEI or micPIC (mic stands for Michael)
       % Not needed
       obj.software = get_software(obj);
-            
-      if nargin == 2
-        % meta data
-        obj.namelist = nameList;
-        namelist = parse_namelist(obj);
-        obj.ndim = namelist.ndim;
-        obj.dims = namelist.dims;         
-        obj.species = namelist.name;
-        obj.charge = namelist.charge;
-        obj.mass = namelist.mass;
-        obj.mime = namelist.mime;
-        obj.wpewce = namelist.wpewce;
-        obj.teti = namelist.teti;
-        % grid
-        if obj.ndim == 1
-          obj.xe = namelist.xe;
-          obj.ye = 0;
-          obj.ze = 0;
-        elseif obj.ndim == 2
-          obj.xe = namelist.xe;
-          obj.ye = namelist.ye;
-          obj.ze = 0;
-        elseif obj.ndim == 3
-          obj.xe = namelist.xe;
-          obj.ye = namelist.ye;
-          obj.ze = namelist.ze;
-        end
-        obj.attributes.particles_per_cell = namelist.particles_per_cell;          
-      elseif nargin == 3 % also load particle binning info
+         
+      % meta data
+      obj.namelist = nameList;
+      namelist = parse_namelist(obj);
+      obj.ndim = namelist.ndim;
+      obj.dims = namelist.dims;         
+      obj.species = namelist.name;
+      obj.charge = namelist.charge;
+      obj.mass = namelist.mass;
+      obj.mime = namelist.mime;
+      obj.wpewce = namelist.wpewce;
+      obj.teti = namelist.teti;
+      % grid
+      if obj.ndim == 1
+        obj.xe = namelist.xe;
+        obj.ye = 0;
+        obj.ze = 0;
+      elseif obj.ndim == 2
+        obj.xe = namelist.xe;
+        obj.ye = namelist.ye;
+        obj.ze = 0;
+      elseif obj.ndim == 3
+        obj.xe = namelist.xe;
+        obj.ye = namelist.ye;
+        obj.ze = namelist.ze;
+      end
+      obj.attributes.particles_per_cell = namelist.particles_per_cell;      
+                                 
+      if nargin == 3 % also load particle binning info
         obj.particlebinning = particleBinningPath;
         obj.attributes.deposited_quantity = namelist.deposited_quantity;
-        obj.attributes.deposited_species = namelist.deposited_species;
-      else          
-        error(sprintf('nInput = %g: Wrong number of input arguments for Smilei simulation.',nargin))
+        obj.attributes.deposited_species = namelist.deposited_species;      
       end
       
       obj.xi = obj.xe/sqrt(obj.mime);
@@ -3071,13 +3073,15 @@ classdef SMILEI
       end     
       
       % particle binning
+      % DON'T DO IT LIKE THIS, instead go through the ParticleBinning*.h5
+      % files where the info is stored in attributes.
       deposited_quantity = regexpi(buffer, '(?<=deposited_quantity\s*=\s*)("\w*")', 'match');      
       species = regexpi(buffer, '(?<=species\s*=\s*[)("\w*")', 'match');
-       for ii = 1:numel(deposited_quantity)
+      for ii = 1:numel(deposited_quantity)
         deposited_quantity{ii} = strrep(deposited_quantity{ii},'"','');
         species{ii} = strrep(species{ii},'"','');
         species{ii} = strrep(species{ii},'[','');
-       end
+      end
       out.deposited_quantity = deposited_quantity;
       out.deposited_species = species;            
       

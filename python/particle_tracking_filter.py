@@ -25,7 +25,7 @@ L     = 1.*m.sqrt(mime)        # transverse width of the B-field distribution
 Lf    = 1.5*m.sqrt(mime)        # sinusoidal period of density fluctuations in inflow
 
 #box_size = [160*m.sqrt(mime), 80*m.sqrt(mime)]
-box_size = [2*m.sqrt(mime), 10*m.sqrt(mime)]
+box_size = [16*m.sqrt(mime), 8*m.sqrt(mime)]
 x0       = box_size[0]*0.5 #6.4 *m.sqrt(mime)        # position of the perturbation 
 y0       = box_size[1]*0.5 #12.8*m.sqrt(mime)        # position of the layer
 
@@ -152,6 +152,53 @@ part = particles(xyw[0,:],xyw[1,:],xyw[2,:])
 print(part)
 
 type(part)
+
+def my_tracked_particles():
+    # Define a set of particles that are to be tracked throughout the simulation. 
+    # Put them to weight zero (such that they dont contribute to the moments) and later add them to the end of the list of particles. Decide some way the filter my_filter() will later find all these particles and decide that they are to be tracked. Weight zero is no good, because there are already particles with weight zero where the density of that species is zero. Maybe just return an array before particle_initialization is done and recall the number of particles nT within that array. Then track the nT last particles.
+
+    # Particles can be added in different manners successively, p_count kepps track of hw many particles have been added.
+    p_count = 0
+    xyw_track = np.ndarray([3,1]) # remove first row later
+    #xyw_track = np.empty((3,0), int)
+
+    ### A relatively tight grid close to the center of the box.
+    if True:
+        nx_part = 10 # number of particles will be nx_part*ny_part
+        ny_part = 10
+        x_center = box_size[0]/2 # de
+        y_center = box_size[1]/2 # de
+        dx_box = 2*m.sqrt(mime) # de
+        dy_box = 2*m.sqrt(mime) # de
+        x1 = x_center-0.5*dx_box
+        x2 = x_center+0.5*dx_box
+        y1 = y_center-0.5*dy_box
+        y2 = y_center+0.5*dy_box
+        
+        x_part = np.linspace(x1,x2,nx_part)
+        y_part = np.linspace(y1,y2,ny_part)
+
+        xyw_tmp = np.zeros(3,nx_part*ny_part) # 3: x,y,weight
+        p_count_tmp = 0
+        for xx in x_part
+            for yy in y_part    
+                p_count = p_count + 1
+                xyw_tmp[0,p_count_tmp-1] = xx
+                xyw_tmp[1,p_count_tmp-1] = yy
+                xyw_tmp[2,p_count_tmp-1] = 0
+        # append the new data to the old data, along axes 1 (column), such that the number of rows always stay the same but number of column sinreases
+        xyw_track = np.append(xyw_track,xyw_tmp,axes=1)
+
+    # A grid with several particles from each starting position
+    if True:
+
+
+
+
+    xyw_track = xyw_track[:,1:] # remove first row which was dummy because i dont know how to append to an empty array
+    return xyw_track
+
+
 def my_filter(particles):
 	# To get a decent coverage, one could take every nth particle, this would
 	# give more particles where the density is higher. Although maybe there would # be too many particles far out

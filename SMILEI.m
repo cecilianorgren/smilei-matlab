@@ -1552,6 +1552,12 @@ classdef SMILEI
         sum_dim = 2;
         range = obj.zi([1 end]);
         rangestr = 'z';
+      elseif strcmp(dim,'y')
+        plot_dep = obj.yi;
+        dep_lim = obj.yi([1 end]);
+        sum_dim = 1;
+        range = obj.xi([1 end]);
+        rangestr = 'x'; 
       elseif strcmp(dim,'z')
         plot_dep = obj.zi;
         dep_lim = obj.zi([1 end]);

@@ -4,6 +4,9 @@ import numpy as np
 import random as rd
 import matplotlib.pyplot as plt
 import time
+import tracemalloc
+
+tracemalloc.start()
 
 print('--------------------------------------------')
 # Here I define some python variables:
@@ -35,8 +38,8 @@ nb = 0.1*n0              # background density
 
 # total number of particles for each species, this is only a target, 
 # these will be distributed over the entire grid
-Ntot_target = np.array([1e7])
-print(type(Ntot_target))
+Ntot_target = np.array([1e8])
+#print(type(Ntot_target))
 
 # define grid
 nx, ny = list(box_size/np.array([1/resx,1/resy])+np.array([1,1]))
@@ -89,6 +92,7 @@ def particle_initialization(Mtot_target,nfun):
 				M[i,j] = Nfrac[i,j]*Mtot_target # number of macro particles in each cell, non-integer
 				#Mceil[i,j] = m.ceil(M[i,j]) 
 		Mceil = np.ceil(M)
+		Mceil = Mceil.astype(int)
 		Mtot = sum(Mceil.flatten()) # total number of macro particles
 		print('Mtot = ' +  str(Mtot))
 
@@ -125,6 +129,7 @@ def particle_initialization(Mtot_target,nfun):
 				y_part[istart:istop] = new_y
 				weight[istart:istop] = new_weight
 				filled[istart:istop] = True
+		Nfinal = p_count
 	else:
 
 		if doAppend:
@@ -182,7 +187,11 @@ def particle_initialization(Mtot_target,nfun):
 					y_part[istart:istop] = new_y
 					weight[istart:istop] = new_weight
 					filled[istart:istop] = True
-					#if append_transition:
+					#if append_transition:		
+		if doAppend:
+			x_part = x_part[filled]
+			y_part = y_part[filled]
+			weight = weight[filled]
 
 	#print(weight_cell)
 	#print(new_weight[-1])
@@ -191,28 +200,32 @@ def particle_initialization(Mtot_target,nfun):
 	#print(weight[istart:istop])
 	#print(weight[istop-1])
 
-	Nfinal = p_count
+	Mfinal = p_count
 	#print(weight[Nfinal-1])
 	#print(filled[Nfinal])
 
 	if doAppend:
-			x_y_weight = np.empty([3,Nfinal])
-			x_y_weight[0,:] = x_part
-			x_y_weight[1,:] = y_part
-			x_y_weight[2,:] = weight
+		x_y_weight = np.empty([3,Mfinal])
+		x_y_weight[0,:] = x_part
+		x_y_weight[1,:] = y_part
+		x_y_weight[2,:] = weight
 	else:
-		x_part = x_part[filled]
-		y_part = y_part[filled]
-		weight = weight[filled]
 		#print(x_part_filled[-1])
-		x_y_weight = np.empty([3,Nfinal])
+		x_y_weight = np.empty([3,Mfinal])
 		x_y_weight[0,:] = x_part
 		x_y_weight[1,:] = y_part
 		x_y_weight[2,:] = weight
 	
 	print(np.shape(x_y_weight))
+	# the file with the entire
+	#maxSaveM = 1e6 # maximum number of macroparticles per file
+	#nFiles = np.ceil(Mfinal/maxSaveM)
+	#for ifile in np.arange(0,nFiles)
+		
 
-	return Nfinal, x_part, y_part, weight, n_center, M
+
+	np.save('n0.npy',x_y_weight)
+	return Mfinal, x_part, y_part, weight, n_center, M
 
 	#return x_y_weight
 
@@ -245,6 +258,14 @@ print('total number of target particles = ' + str(Ntot_target))
 print('average number of particles per cell = ' + str(Ntot_target/(nx-1)/(ny-1)))
 print('total number of particles after initiation: ' + str(n_part_final))
 
+snapshot = tracemalloc.take_snapshot()
+top_stats = snapshot.statistics('lineno')
+
+print('--------------------------------------------')
+print("[ Top 10 ]")
+for stat in top_stats[:10]:
+    print(stat)
+print('--------------------------------------------')
 if False:
 
 	# plot results

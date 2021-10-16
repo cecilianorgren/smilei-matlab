@@ -1,5 +1,5 @@
 %% Development
-dirpath = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/';
+dirpath = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_momentum/';
 filename = 'ParticleBinning77.h5';
 
 info = h5info([dirpath filename]);
@@ -16,10 +16,10 @@ npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols);
 isub = 1;
 
-iter = 1700;
+iter = 1400;
 
 
-if 1 % id = 36:41, ekin_dist_ 
+if 0 % id = 36:41, ekin_dist_ 
   timestep = sprintf('/timestep%08.0f',iter);
   hca = h(isub); isub = isub + 1;
   id_all = 36:41;
@@ -57,9 +57,9 @@ if 1 % id = 36:41, ekin_dist_
   hleg.Title.String = 'species';
 end
 
-if 0 % id = 54, vdf_px_ 
+if 1 % id = 54, vdf_px_ 
   hca = h(isub); isub = isub + 1; 
-  id = 54+2*6+2+1;
+  id = 54+1*6+2+0;
   timestep = sprintf('/timestep%08.0f',iter);
   doLog = 1;
   filename = sprintf('ParticleBinning%g.h5',id);
@@ -131,4 +131,49 @@ if 0 % id = 77
   imagesc(hca,dep1,dep3,squeeze(data))
   hcb = colorbar('peer',hca);
   hcb.YLabel.String = name;
+end
+
+%% Temporal evolution of partice distributions
+dirpath = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_momentum/';
+doLog = 1;
+h = setup_subplots(3,4);
+times = 1000:100:2000;
+nt = numel(times);
+ids = 54 + [0:3 6:9 12:15];
+nid = numel(ids);
+for it = 1:nt  
+  isub = 1;
+  timestep = sprintf('/timestep%08.0f',times(it));
+  for id = 1:nid
+    filename = sprintf('ParticleBinning%g.h5',ids(id));
+    hca = h(isub); isub = isub + 1; 
+    
+    %info = h5info([dirpath filename]);
+    data = h5read([dirpath filename],timestep);
+    name = h5readatt([dirpath filename],'/','name');
+    dep0 = h5readatt([dirpath filename],'/','axis0');
+    dep1 = h5readatt([dirpath filename],'/','axis1');
+    dep2 = h5readatt([dirpath filename],'/','axis2');
+    [dep0_str,dep0_val] = make_dep(dep0);
+    [dep1_str,dep1_val] = make_dep(dep1);
+    [dep2_str,dep2_val] = make_dep(dep2);
+
+    if doLog
+      imagesc(hca,dep0_val,dep2_val,log10(squeeze(data)))
+      hcb = colorbar('peer',hca);
+      hcb.YLabel.String = ['log10 ' name];
+    else
+      imagesc(hca,dep0_val,dep2_val,squeeze(data))
+      hcb = colorbar('peer',hca);
+      hcb.YLabel.String = name;
+    end
+    hca.XLabel.String = dep0_str;
+    hca.YLabel.String = dep2_str;
+    hca.Title.String = timestep(2:end);
+    hcb.YLabel.Interpreter = 'none';
+    hca.YDir = 'normal';
+    colormap(hca,pic_colors('candy4'))
+    drawnow
+  end  
+  cn.print(['vx_vy_vz_' timestep(2:end)])
 end

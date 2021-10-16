@@ -7,6 +7,9 @@ namelist = '/Users/cno062/tesla/software/smilei/Smilei/baselinerun/newpert/Harri
 filepath = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/Fields0.h5';
 namelist = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/Harris_wcold.py';
 
+filepath = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_momentum/Fields0.h5';
+namelist = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_momentum/Harris_wcold_extended_diagnostics.py';
+
 sm = SMILEI(filepath,namelist);
 
 %%

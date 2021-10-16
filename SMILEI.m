@@ -2994,11 +2994,13 @@ classdef SMILEI
       % regexp
       
       % Remove all lines that start with #
+      iline = 0;
       fidi = fopen(obj.namelist, 'rt');
       tmp_file = '/tmp/tmp_namelist.py';
       fido = fopen(tmp_file, 'wt');
       tline = fgetl(fidi);
       while ischar(tline)
+        iline = iline + 1;
         ihash = strfind(tline,'#');
         if ~isempty(tline) && ~isempty(ihash) % we have a # somewhere
           if strcmp(tline(1),'#') % skip entire line
@@ -3010,6 +3012,7 @@ classdef SMILEI
           tline = fgetl(fidi);
           continue
         end
+        %disp(tline)
         fprintf(fido, '%s\n', tline);        
         tline = fgetl(fidi);
       end
@@ -3081,16 +3084,17 @@ classdef SMILEI
       % particle binning
       % DON'T DO IT LIKE THIS, instead go through the ParticleBinning*.h5
       % files where the info is stored in attributes.
-      deposited_quantity = regexpi(buffer, '(?<=deposited_quantity\s*=\s*)("\w*")', 'match');      
-      species = regexpi(buffer, '(?<=species\s*=\s*[)("\w*")', 'match');
-      for ii = 1:numel(deposited_quantity)
-        deposited_quantity{ii} = strrep(deposited_quantity{ii},'"','');
-        species{ii} = strrep(species{ii},'"','');
-        species{ii} = strrep(species{ii},'[','');
+      if 0
+        deposited_quantity = regexpi(buffer, '(?<=deposited_quantity\s*=\s*)("\w*")', 'match');      
+        species = regexpi(buffer, '(?<=species\s*=\s*[)("\w*")', 'match');
+        for ii = 1:numel(deposited_quantity)
+          deposited_quantity{ii} = strrep(deposited_quantity{ii},'"','');
+          species{ii} = strrep(species{ii},'"','');
+          species{ii} = strrep(species{ii},'[','');
+        end
+        out.deposited_quantity = deposited_quantity;
+        out.deposited_species = species;            
       end
-      out.deposited_quantity = deposited_quantity;
-      out.deposited_species = species;            
-      
     end
     function out = get_software(obj)
       nAttr = numel(obj.info.Attributes);

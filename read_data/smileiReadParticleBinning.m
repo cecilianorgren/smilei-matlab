@@ -16,10 +16,10 @@ npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols);
 isub = 1;
 
-iter = 1400;
+iter = 2000;
 
 
-if 0 % id = 36:41, ekin_dist_ 
+if 1 % id = 36:41, ekin_dist_ 
   timestep = sprintf('/timestep%08.0f',iter);
   hca = h(isub); isub = isub + 1;
   id_all = 36:41;
@@ -57,7 +57,7 @@ if 0 % id = 36:41, ekin_dist_
   hleg.Title.String = 'species';
 end
 
-if 1 % id = 54, vdf_px_ 
+if 0 % id = 54, vdf_px_ 
   hca = h(isub); isub = isub + 1; 
   id = 54+1*6+2+0;
   timestep = sprintf('/timestep%08.0f',iter);

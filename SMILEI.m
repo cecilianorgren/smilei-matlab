@@ -92,7 +92,7 @@ classdef SMILEI
     
   end
   
-  properties (Constant = true)
+  properties (Constant = true)    
   end
   
   properties (Constant = true, Hidden = true)
@@ -150,6 +150,26 @@ classdef SMILEI
       end
       
       tic; % time loading, and 
+      
+      %% Go through ParticleBinning files
+      % List files
+      listFiles = dir([particleBinningPath 'ParticleBinning*.h5']);
+      nFiles = numel(listFiles);
+      
+      for iFile = 1:nFiles
+        tmp_path = [listFiles(iFile).folder filesep listFiles(iFile).name];
+        info = h5info(tmp_path);
+        nAttr = numel(info.Attributes);        
+        % Add all attributes
+        data(iFile).Attributes = info.Attributes;%h5readatt(tmp_path,'/',info.Attributes(iAttr).Name);
+        % Derive some quantities from the attributes
+        % Axes
+        % Find all attributes with name axes
+        
+      end
+      obj.particlebinning = data;
+      
+      %%
       obj.file = h5filePath; 
       obj.info = h5info(h5filePath); 
       %
@@ -184,11 +204,11 @@ classdef SMILEI
       end
       obj.attributes.particles_per_cell = namelist.particles_per_cell;      
                                  
-      if nargin == 3 % also load particle binning info
-        obj.particlebinning = particleBinningPath;
-        obj.attributes.deposited_quantity = namelist.deposited_quantity;
-        obj.attributes.deposited_species = namelist.deposited_species;      
-      end
+%       if nargin == 3 % also load particle binning info
+%         %obj.particlebinning = particleBinningPath;
+%         obj.attributes.deposited_quantity = namelist.deposited_quantity;
+%         obj.attributes.deposited_species = namelist.deposited_species;      
+%       end
       
       obj.xi = obj.xe/sqrt(obj.mime);
       obj.yi = obj.ye/sqrt(obj.mime);
@@ -211,6 +231,7 @@ classdef SMILEI
       end      
       obj.parent = obj;
       obj.attributes = get_attributes(obj);
+      
       toc
     end
  

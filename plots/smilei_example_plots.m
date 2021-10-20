@@ -9,8 +9,9 @@ namelist = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/Harris_wcol
 
 filepath = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_momentum/Fields0.h5';
 namelist = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_momentum/Harris_wcold_extended_diagnostics.py';
+particlebinningpath = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_momentum/';
 
-sm = SMILEI(filepath,namelist);
+sm = SMILEI(filepath,namelist,particlebinningpath);
 
 %%
 filepath = '/Users/cno062/tesla/software/Smilei4.5/Smilei/3d_turb/Fields0.h5';

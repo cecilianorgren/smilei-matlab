@@ -11,6 +11,11 @@ filepath = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_moment
 namelist = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_momentum/Harris_wcold_extended_diagnostics.py';
 particlebinningpath = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_momentum/';
 
+filepath = '/Users/cecilia/Data/PIC/Smilei/cn_open_boundary/Fields0.h5';
+namelist = '/Users/cecilia/Data/PIC/Smilei/cn_open_boundary/Harris_open_boundary.py';
+particlebinningpath = '/Users/cecilia/Data/PIC/Smilei/cn_open_boundary/';
+
+
 sm = SMILEI(filepath,namelist,particlebinningpath);
 
 %%

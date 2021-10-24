@@ -226,9 +226,9 @@ classdef SMILEI
       obj.it = 1:1:numel(obj.twpe);
       
       obj.fields_ = get_fields(obj);
-      if  nargin == 3 % Particle diagnostics files
-        obj.fields_ = cat(1,obj.fields_(:),unique(namelist.deposited_quantity(:)));
-      end      
+%      if  nargin == 3 % Particle diagnostics files
+%        obj.fields_ = cat(1,obj.fields_(:),unique(namelist.deposited_quantity(:)));
+%      end      
       obj.parent = obj;
       obj.attributes = get_attributes(obj);
       
@@ -273,7 +273,7 @@ classdef SMILEI
 %           if numel(idx(1).subs)  1 % only time index
 %             
 %           end
-          if numel(idx) > 1
+          if numel(idx) > 1 % What is this?
             obj = builtin('subsref',obj,idx(2:end));
           end
           try
@@ -779,11 +779,11 @@ classdef SMILEI
 %               else
 %                 var = tmp_obj.(varstrs{ivar});
 %               end        
-              var = tmp_obj.get_exp(varstrs{ivar});              
+              var = tmp_obj.get_exp(varstrs{ivar});
               if doSmooth
                 var = smooth2(var,npSmooth);
               end
-              imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
+              imagesc(hca,tmp_obj.xi,tmp_obj.yi,var');
               %contourf(hca,tmp_obj.xi,tmp_obj.zi,var',0:0.25:25);
               %contourf(hca,tmp_obj.xi,tmp_obj.zi,var',2:0.2:8);
               hb(ivar) = colorbar('peer',hca);
@@ -815,9 +815,9 @@ classdef SMILEI
               levA = floor(min(A(:))/stepA)*stepA:stepA:ceil(max(A(:))/stepA)*stepA;
               %levA = stepA;
               iAx = 1:5:obj.nx;
-              iAz = 1:5:obj.nz;
+              iAy = 1:5:obj.ny;
               hold(hca,'on')
-              contour(hca,tmp_obj.xi(iAx),tmp_obj.zi(iAz),A(iAx,iAz)',levA,'color',colorA)
+              contour(hca,tmp_obj.xi(iAx),tmp_obj.yi(iAy),A(iAx,iAy)',levA,'color',colorA)
               hold(hca,'off')
               hca.CLim = clim; 
             end        
@@ -922,7 +922,7 @@ classdef SMILEI
               hold(hca,'off')
             end
             hca.XLim = obj.xi([1 end]);
-            hca.YLim = obj.zi([1 end]);
+            hca.YLim = obj.yi([1 end]);
             hca.FontSize = 14;
            % drawnow;
           end
@@ -1260,7 +1260,7 @@ classdef SMILEI
           levA = stepA;
         end
         iAx = 1:5:obj.nx;
-        iAz = 1:5:obj.nz;
+        iAy = 1:5:obj.ny;
       end
       if doSep
         if not(doA)
@@ -1319,7 +1319,7 @@ classdef SMILEI
           clim = hca.CLim;
           if doA
             hold(hca,'on')
-            contour(hca,obj.xi(iAx),obj.zi(iAz),A(iAx,iAz)',levA,'k')
+            contour(hca,obj.xi(iAx),obj.yi(iAy),A(iAx,iAy)',levA,'k')
             hold(hca,'off')
           end
           if doSep

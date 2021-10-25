@@ -1,3 +1,5 @@
+localuser = datastore('local','user');
+
 filepath = '/Users/cno062/tesla/software/Smilei4.5/Smilei/cold_run/Fields0.h5';
 namelist = '/Users/cno062/tesla/software/Smilei4.5/Smilei/cold_run/Harris_new.py';
 
@@ -11,10 +13,13 @@ filepath = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_moment
 namelist = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_momentum/Harris_wcold_extended_diagnostics.py';
 particlebinningpath = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_momentum/';
 
-filepath = '/Users/cecilia/Data/PIC/Smilei/cn_open_boundary/Fields0.h5';
-namelist = '/Users/cecilia/Data/PIC/Smilei/cn_open_boundary/Harris_open_boundary.py';
-particlebinningpath = '/Users/cecilia/Data/PIC/Smilei/cn_open_boundary/';
+filepath = ['/Users/' localuser '/Data/PIC/Smilei/cn_open_boundary/Fields0.h5'];
+namelist = ['/Users/' localuser '/Data/PIC/Smilei/cn_open_boundary/Harris_open_boundary.py'];
+particlebinningpath = ['/Users/' localuser '/Data/PIC/Smilei/cn_open_boundary/'];
 
+filepath = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/Fields0.h5'];
+namelist = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/Harris_open_boundary.py'];
+particlebinningpath = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/'];
 
 sm = SMILEI(filepath,namelist,particlebinningpath);
 

@@ -1,8 +1,22 @@
 %% Load object
-directory = '/Users/cecilia/Smilei/streaming_instabilities/beam3/';
-namelist = [directory 'tst1d_02_two_str_instability.py'];
-directory = '/Users/cecilia/Smilei/streaming_instabilities/beam_buneman/';
+localuser = datastore('local','user');
+smilei_path = datastore('local','smilei_data_dir');
+
+
+directory = [smilei_path '/streaming_instabilities/cn_beam_1d/beam_buneman/'];
 namelist = [directory 'buneman.py'];
+
+directory = [smilei_path '/streaming_instabilities/cn_beam_1d/electron_twostream/'];
+namelist = [directory 'electron_two_stream.py'];
+
+
+directory = [smilei_path '/streaming_instabilities/cn_beam_1d/beam1c/'];
+namelist = [directory 'tst1d_02_two_str_instability.py'];
+
+%directory = ['/Users/cno062/Discs/betzy/Smilei/cn_beam_1d/beam_buneman/'];
+%namelist = [directory 'buneman.py'];
+
+
 
 filepath = [directory 'Fields0.h5'];
 particlebinningpath = directory;
@@ -28,7 +42,7 @@ end
 %% Diagonal particle binning
 %% Temporal evolution of partice distributions
 particlebinningpath = directory;
-filename = sprintf('ParticleBinning%g.h5',1);
+filename = sprintf('ParticleBinning%g.h5',0);
 info_diag = h5info([particlebinningpath filesep filename]);
 datasets = {info_diag.Datasets.Name};
 nDatasets = numel(datasets);
@@ -43,7 +57,7 @@ for iDataset = 1:nDatasets
   data = h5read([particlebinningpath filename],[filesep dataset]);
   if iDataset == 1
     data0 = data;
-  end
+  end 
   name = h5readatt([particlebinningpath filename],'/','name');
   dep0 = h5readatt([particlebinningpath filename],'/','axis0');
   dep1 = h5readatt([particlebinningpath filename],'/','axis1');  
@@ -54,11 +68,11 @@ for iDataset = 1:nDatasets
   if 1 % f(x,vx)
     hca = h(isub); isub = isub + 1;
     if doLog
-      imagesc(hca,dep0_val,dep1_val,smooth2(log10(squeeze(data)),0))
+      imagesc(hca,dep0_val,dep1_val,smooth2(log10(squeeze(data)),2))
       hcb = colorbar('peer',hca);
       hcb.YLabel.String = ['log10 ' name];
     else
-      imagesc(hca,dep0_val,dep1_val,smooth2(squeeze(data),0))
+      imagesc(hca,dep0_val,dep1_val,smooth2(squeeze(data),2))
       hcb = colorbar('peer',hca);
       hcb.YLabel.String = name;
     end

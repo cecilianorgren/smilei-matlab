@@ -4,9 +4,9 @@ import numpy as np
 import random as rd
 import matplotlib.pyplot as plt
 import time
-import tracemalloc
+#import tracemalloc
 
-tracemalloc.start()
+#tracemalloc.start()
 
 print('--------------------------------------------')
 # Here I define some python variables:
@@ -258,15 +258,15 @@ print('total number of target particles = ' + str(Ntot_target))
 print('average number of particles per cell = ' + str(Ntot_target/(nx-1)/(ny-1)))
 print('total number of particles after initiation: ' + str(n_part_final))
 
-snapshot = tracemalloc.take_snapshot()
-top_stats = snapshot.statistics('lineno')
+# snapshot = tracemalloc.take_snapshot()
+# top_stats = snapshot.statistics('lineno')
 
-print('--------------------------------------------')
-print("[ Top 10 ]")
-for stat in top_stats[:10]:
-    print(stat)
-print('--------------------------------------------')
-if False:
+# print('--------------------------------------------')
+# print("[ Top 10 ]")
+# for stat in top_stats[:10]:
+#     print(stat)
+# print('--------------------------------------------')
+if True:
 
 	# plot results
 

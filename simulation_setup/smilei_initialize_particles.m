@@ -85,16 +85,13 @@ M_final = sum(M(:));
 
 % Distribute the assigned number of particles throughout the cell
 % It would be best to do it in some matrix form.
-
-% First assign the relative location within each cell.
-x_loc_rel = rand(M_final,1);
-y_loc_rel = rand(M_final,1);
-
 [X_left_edges,Y_left_edges] = ndgrid(x(1:end-1),y(1:end-1));
 
+% Initialize matrix for particle positions
 part_x = zeros(M_final,1);
 part_y = zeros(M_final,1);
 part_w = zeros(M_final,1);
+% Fill matrix with random positions within each cell
 part_count_stop = 0;
 for icell = 1:numel(X_left_edges)
   icell;
@@ -105,8 +102,13 @@ for icell = 1:numel(X_left_edges)
   part_y(part_count_start:part_count_stop) = repmat(Y_left_edges(icell),M(icell),1) + dy*rand(M(icell),1);
   part_w(part_count_start:part_count_stop) = W(icell);
 end
-%part_x = X_left_edges(:) + dx*x_loc_rel;
-%part_y = Y_left_edges(:) + dy*y_loc_rel;
+
+% Assign thermal velocities for each particle
+
+vt = 0.1;
+
+
+
 
 % Plot results
 nrows = 4;

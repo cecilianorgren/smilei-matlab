@@ -21,6 +21,10 @@ filepath = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/Fields0.h5'];
 namelist = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/Harris_open_boundary.py'];
 particlebinningpath = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/'];
 
+
+filepath = '/Users/cno062/Discs/betzy2/stableSmilei/namelist_dev/Fields0.h5';
+namelist = '/Users/cno062/Discs/betzy2/stableSmilei/namelist_dev/Harris_dev.py';
+
 sm = SMILEI(filepath,namelist,particlebinningpath);
 
 %%

@@ -39,6 +39,9 @@
 % Define agrid into which you divide grid. The grid does not have to be the
 % same as in the simulation, since it's only used to discretize n. But xmax
 % and xmin needs to be the same as in simulation.
+c = 299792458;
+c = 1;
+
 xmin = 0; xmax = 128/2;
 ymin = 0; ymax = 64/2;
 nx = 100;6401; % edges points of grid in z
@@ -59,7 +62,7 @@ L = 2;
 nfun = @(x,y) 0.001 + n0./cosh((y-y0)/L).^2; 
 
 % Target number of macro_particles int he simulation (for given species)
-M_tot_target = 1e5;
+M_tot_target = 1e6;
 
 % Discretize density distribution onto centers of grid.
 [X,Y] = ndgrid(x_center,y_center);
@@ -104,41 +107,102 @@ for icell = 1:numel(X_left_edges)
 end
 
 % Assign thermal velocities for each particle
+% Maxwell or Maxwell-Juttner distribution
+% f_MJ = gamma^2*beta/(theta*K2(1/theta))*exp(gamma/theta)
+% beta = v/c=sqrt(1-1/gamma^2)
+% gamma = 1/sqrt(1-(v/c)^2);
+% theta = kT/(mc^2)
+% K2 - modified Bessel function of second kind
+% K = besselk(2,theta))
+T = 0.01; % In terms of mc^2/k? Are we actually assigning theta directly?
+theta = 100; % ?
+v = linspace(0,0.99999999999*c,1000000);
+%v = linspace(0,c,1000000);
+%v = logspace(0,3.9999,100);
+%v = logspace(-5,-0.0000001,100);
+beta = v/c;
+gamma = 1./sqrt(1-(v/c).^2);
 
-vt = 0.1;
+f_MJ = @(gamma,beta,theta) gamma.^2.*beta./(besselk(0,theta)).*exp(-gamma/theta);
 
-
-
+% Save data in hdf5 structure
 
 % Plot results
-nrows = 4;
-ncols = 1;
+nrows = 3;
+ncols = 2;
 
 h = setup_subplots(nrows,ncols);
 isub = 1;
 
-hca = h(isub); isub = isub + 1;
-pcolor(hca,X,Y,N)
-shading(hca,'flat');
-hcb = colorbar('peer',hca);
-hcb.YLabel.String = 'N';
-
-
-hca = h(isub); isub = isub + 1;
-pcolor(hca,X,Y,N_frac)
-shading(hca,'flat');
-hcb = colorbar('peer',hca);
-hcb.YLabel.String = 'Nfrac';
-
-
-hca = h(isub); isub = isub + 1;
-pcolor(hca,X,Y,M_target)
-shading(hca,'flat');
-hcb = colorbar('peer',hca);
-hcb.YLabel.String = 'Mtarget';
-
-hca = h(isub); isub = isub + 1;
-plot(hca,part_x,part_y,'.')
+if 1 % N
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Y,N)
+  shading(hca,'flat');
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'N';
+end
+if 0 % Nfrac
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Y,N_frac)
+  shading(hca,'flat');
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'Nfrac';
+end
+if 0 % M_target
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Y,M_target)
+  shading(hca,'flat');
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'Mtarget';
+end
+if 1 % M
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Y,M)
+  shading(hca,'flat');
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'M';
+end
+if 1 % Individual particle locations
+  hca = h(isub); isub = isub + 1;
+  plot(hca,part_x,part_y,'.')
+end
+if 1 % Individual particles binned
+  hca = h(isub); isub = isub + 1;
+  [count edges mid loc] = histcn([part_x,part_y],x,y,'AccumData',part_w);
+  pcolor(hca,X,Y,count)
+  shading(hca,'flat');
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'Distribution of xpart ypart';
+end
+if 0 % N_target - N_final
+  hca = h(isub); isub = isub + 1;
+  [count edges mid loc] = histcn([part_x,part_y],x,y,'AccumData',part_w);
+  pcolor(hca,X,Y,N-count)
+  shading(hca,'flat');
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'N_target - N_final';
+  hcb.YLabel.Interpreter = 'none';
+end
+if 0
+  hca = h(isub); isub = isub + 1;
+  m_edges = logspace(-1,3,20);
+  m_edges = 0:20:1000;
+  [M_hist,m_bin_center] = hist(M(:),m_edges);
+  bar(hca,m_bin_center,M_hist)
+end
+if 1 % gamma(v)
+  hca = h(isub); isub = isub + 1;
+  loglog(hca,v,gamma)
+  hca.XLabel.String = 'v/c';
+  hca.YLabel.String = '\gamma';
+end
+if 1 % thermal distribution
+  hca = h(isub); isub = isub + 1;
+  %plot(hca,log10(gamma),f_MJ(gamma,beta,theta))
+  loglog(hca,gamma,f_MJ(gamma,beta,theta))
+  hca.XLabel.String = '\gamma';
+  hca.YLabel.String = 'f_{MJ}';
+end
 %shading(hca,'flat');
 %hcb = colorbar('peer',hca);
 %hcb.YLabel.String = 'Mtarget';

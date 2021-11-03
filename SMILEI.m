@@ -152,6 +152,7 @@ classdef SMILEI
       tic; % time loading, and 
       
       %% Go through ParticleBinning files
+      if 0
       % List files
       listFiles = dir([particleBinningPath 'ParticleBinning*.h5']);
       nFiles = numel(listFiles);
@@ -168,7 +169,7 @@ classdef SMILEI
         
       end
       obj.particlebinning = data;
-      
+      end
       %%
       obj.file = h5filePath; 
       obj.info = h5info(h5filePath); 
@@ -1310,11 +1311,11 @@ classdef SMILEI
           if doSmooth
             var = smooth2(var,npSmooth);
           end
-          imagesc(hca,obj.xi,obj.zi,var');
+          imagesc(hca,obj.xi,obj.yi,var');
           hb(ivar) = colorbar('peer',hca);
           hb(ivar).YLabel.String = varstrs{ivar};
           hca.XLabel.String = 'x (d_i)';
-          hca.YLabel.String = 'z (d_i)';
+          hca.YLabel.String = 'y (d_i)';
           hca.YDir = 'normal';
           clim = hca.CLim;
           if doA

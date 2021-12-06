@@ -3496,15 +3496,15 @@ classdef SMILEI
       nSpecies = numel(species);
       if strcmp(obj.software,'micPIC')
         dfac = obj.get_dfac;
-        var = zeros(obj.nx,obj.ny,obj.nz,obj.nt);
+        var = zeros(obj.nx,obj.nz,obj.nt);
         for iSpecies = species
-          var = var + obj.get_field(sprintf('v%ss/%.0f',comp,iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);
+          var = var + obj.get_field(sprintf('vzs/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);
         end
       elseif strcmp(obj.software,'Smilei')
-        var = zeros(obj.nx,obj.ny,obj.nz,obj.nt);
+        var = zeros(obj.nx,obj.ny,obj.nt);
         for iSpecies = species
           pop_str = obj.species{iSpecies};
-          var = var + obj.charge(iSpecies)*obj.get_field(['J' comp '_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+          var = var + obj.charge(iSpecies)*obj.get_field(['Jz_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
         end
       end
       out = var;  
@@ -3518,54 +3518,72 @@ classdef SMILEI
       %   Jx = pic.JIX - pic.JEX;
       % See also: PIC.JY, PIC.JZ, PIC.JEX, PIC.JEY, PIC.JEZ, PIC.JIX,
       %   PIC.JIY, PIC.JIZ
-      out = js(obj,species,'x');  
-%       % Check that only a single species of a given charge is given
-%       if not(numel(unique(obj.charge(species))) == 1)
-%         error('Selected species have different charge. This is not supported.')
-%       end
-%       nSpecies = numel(species);
-%       if strcmp(obj.software,'micPIC')
-%         dfac = obj.get_dfac;
-%         var = zeros(obj.nx,obj.nz,obj.nt);
-%         for iSpecies = species
-%           var = var + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);
-%         end
-%       elseif strcmp(obj.software,'Smilei')
-%         var = zeros(obj.nx,obj.nz,obj.nt);
-%         for iSpecies = species
-%           pop_str = obj.species{iSpecies};
-%           var = var + obj.charge(iSpecies)*obj.get_field(['Jx_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
-%         end
-%       end
-%       out = var;
+      
+      % Check that only a single species of a given charge is given
+      if not(numel(unique(obj.charge(species))) == 1)
+        error('Selected species have different charge. This is not supported.')
+      end
+      nSpecies = numel(species);
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+        var = zeros(obj.nx,obj.nz,obj.nt);
+        for iSpecies = species
+          var = var + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);
+        end
+      elseif strcmp(obj.software,'Smilei')
+        var = zeros(obj.nx,obj.nz,obj.nt);
+        for iSpecies = species
+          pop_str = obj.species{iSpecies};
+          var = var + obj.charge(iSpecies)*obj.get_field(['Jx_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+        end
+      end
+      out = var;
     end
     function out = jy(obj,species)
       % Get jy
-      out = js(obj,species,'y');  
-%       
-%       % Check that only a single species of a given charge is given
-%       if not(numel(unique(obj.charge(species))) == 1)
-%         error('Selected species have different charge. This is not supported.')
-%       end
-%       nSpecies = numel(species);
-%       if strcmp(obj.software,'micPIC')
-%         dfac = obj.get_dfac;
-%         var = zeros(obj.nx,obj.nz,obj.nt);
-%         for iSpecies = species
-%           var = var + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);
-%         end
-%       elseif strcmp(obj.software,'Smilei')
-%         var = zeros(obj.nx,obj.nz,obj.nt);
-%         for iSpecies = species
-%           pop_str = obj.species{iSpecies};
-%           var = var + obj.charge(iSpecies)*obj.get_field(['Jy_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
-%         end
-%       end
-%       out = var;    
+      
+      % Check that only a single species of a given charge is given
+      if not(numel(unique(obj.charge(species))) == 1)
+        error('Selected species have different charge. This is not supported.')
+      end
+      nSpecies = numel(species);
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+        var = zeros(obj.nx,obj.nz,obj.nt);
+        for iSpecies = species
+          var = var + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);
+        end
+      elseif strcmp(obj.software,'Smilei')
+        var = zeros(obj.nx,obj.nz,obj.nt);
+        for iSpecies = species
+          pop_str = obj.species{iSpecies};
+          var = var + obj.charge(iSpecies)*obj.get_field(['Jy_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+        end
+      end
+      out = var;    
     end
     function out = jz(obj,species)
-      % Get jz           
-      out = js(obj,species,'z');  
+      % Get jz
+      
+      % Check that only a single species of a given charge is given
+      if not(numel(unique(obj.charge(species))) == 1)
+        error('Selected species have different charge. This is not supported.')
+      end
+      nSpecies = numel(species);
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+        var = zeros(obj.nx,obj.nz,obj.nt);
+        for iSpecies = species
+          var = var + obj.get_field(sprintf('vzs/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);
+        end
+      elseif strcmp(obj.software,'Smilei')
+        var = zeros(obj.nx,obj.ny,obj.nt);
+        for iSpecies = species
+          pop_str = obj.species{iSpecies};
+          var = var + obj.charge(iSpecies)*obj.get_field(['Jz_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+        end
+      end
+      out = var;  
     end
     function out = jex(obj)
       % Get electron flux, x

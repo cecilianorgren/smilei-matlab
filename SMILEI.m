@@ -3487,26 +3487,26 @@ classdef SMILEI
     end
     % Flux
     function out = js(obj,species,comp)
-      % Get jz
+      % Get j component of particle flux
+      %   j = js(obj,species,comp)
+      %   j1x = js(obj,1,'x')
+      %      
+      % See also: SMILEI.JX, SMILEI.JY, SMILEI.JZ, 
+      %   SMILEI.JEX, SMILEI.JEY, SMILEI.JEZ, 
+      %   SMILEI.JIX, SMILEI.JIY, SMILEI.JIZ
       
       % Check that only a single species of a given charge is given
       if not(numel(unique(obj.charge(species))) == 1)
         error('Selected species have different charge. This is not supported.')
       end
       nSpecies = numel(species);
-      if strcmp(obj.software,'micPIC')
-        dfac = obj.get_dfac;
-        var = zeros(obj.nx,obj.ny,obj.nz,obj.nt);
-        for iSpecies = species
-          var = var + obj.get_field(sprintf('v%ss/%.0f',comp,iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);
-        end
-      elseif strcmp(obj.software,'Smilei')
-        var = zeros(obj.nx,obj.ny,obj.nz,obj.nt);
-        for iSpecies = species
-          pop_str = obj.species{iSpecies};
-          var = var + obj.charge(iSpecies)*obj.get_field(['J' comp '_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
-        end
+      
+      var = zeros(obj.nx,obj.ny,obj.nz,obj.nt);
+      for iSpecies = species
+        pop_str = obj.species{iSpecies};
+        var = var + obj.charge(iSpecies)*obj.get_field(['J' comp '_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
       end
+      
       out = var;  
     end
     function out = jx(obj,species)
@@ -3516,52 +3516,14 @@ classdef SMILEI
       %     jx = pic.JX([1 3]);
       %   To get partial current, you need to multiply with charge (1,-1).      
       %   Jx = pic.JIX - pic.JEX;
-      % See also: PIC.JY, PIC.JZ, PIC.JEX, PIC.JEY, PIC.JEZ, PIC.JIX,
-      %   PIC.JIY, PIC.JIZ
+      %
+      % See also: SMILEI.JY, SMILEI.JZ, SMILEI.JEX, SMILEI.JEY, SMILEI.JEZ, SMILEI.JIX,
+      %   SMILEI.JIY, SMILEI.JIZ, SMILEI.JS
       out = js(obj,species,'x');  
-%       % Check that only a single species of a given charge is given
-%       if not(numel(unique(obj.charge(species))) == 1)
-%         error('Selected species have different charge. This is not supported.')
-%       end
-%       nSpecies = numel(species);
-%       if strcmp(obj.software,'micPIC')
-%         dfac = obj.get_dfac;
-%         var = zeros(obj.nx,obj.nz,obj.nt);
-%         for iSpecies = species
-%           var = var + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);
-%         end
-%       elseif strcmp(obj.software,'Smilei')
-%         var = zeros(obj.nx,obj.nz,obj.nt);
-%         for iSpecies = species
-%           pop_str = obj.species{iSpecies};
-%           var = var + obj.charge(iSpecies)*obj.get_field(['Jx_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
-%         end
-%       end
-%       out = var;
     end
     function out = jy(obj,species)
       % Get jy
-      out = js(obj,species,'y');  
-%       
-%       % Check that only a single species of a given charge is given
-%       if not(numel(unique(obj.charge(species))) == 1)
-%         error('Selected species have different charge. This is not supported.')
-%       end
-%       nSpecies = numel(species);
-%       if strcmp(obj.software,'micPIC')
-%         dfac = obj.get_dfac;
-%         var = zeros(obj.nx,obj.nz,obj.nt);
-%         for iSpecies = species
-%           var = var + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);
-%         end
-%       elseif strcmp(obj.software,'Smilei')
-%         var = zeros(obj.nx,obj.nz,obj.nt);
-%         for iSpecies = species
-%           pop_str = obj.species{iSpecies};
-%           var = var + obj.charge(iSpecies)*obj.get_field(['Jy_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
-%         end
-%       end
-%       out = var;    
+      out = js(obj,species,'y');   
     end
     function out = jz(obj,species)
       % Get jz           
@@ -3569,16 +3531,19 @@ classdef SMILEI
     end
     function out = jex(obj)
       % Get electron flux, x
+      % jex = SMILEI.jex;
       iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
       out = obj.jx(iSpecies);
     end
     function out = jey(obj)
       % Get electron flux, y
+      % jey = SMILEI.jey;
       iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
       out = obj.jy(iSpecies);
     end
     function out = jez(obj)
       % Get electron flux, z
+      % jez = SMILEI.jez;
       iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
       out = obj.jz(iSpecies);
     end

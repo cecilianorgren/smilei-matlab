@@ -1,5 +1,5 @@
 %% Development
-dirpath = '/Users/cecilia/Discs/betzy/Smilei/cold_dipolarization_CN/cold_momentum/';
+dirpath = '/Users/cecilia/Discs/betzy/Smilei/cn_cold_dipolarization/cold_momentum/';
 filename = 'ParticleBinning77.h5';
 
 info = h5info([dirpath filename]);

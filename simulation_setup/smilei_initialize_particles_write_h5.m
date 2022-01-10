@@ -1,5 +1,5 @@
-function out  = smilei_initialize_particles_write_h5(M_target_arr,n_dist,box_size,nxny)
-% function out  = smilei_initialize_particles_write_h5(M_target,n_dist,box_size,[nx ny])
+function out  = smilei_initialize_particles_write_h5(M_target_arr,n_dist,box_size,nxny,filename)
+% function out  = smilei_initialize_particles_write_h5(M_target,n_dist,box_size,[nx ny],filename)
 % Writes a h5 file with particle positions based on the total number of
 % desired particles.
 %   M_target - array with total number of target particles for each
@@ -9,6 +9,8 @@ function out  = smilei_initialize_particles_write_h5(M_target_arr,n_dist,box_siz
 %   [nx, ny] - number of cells in which to divide grid, does not have to be
 %              the same as the final distribution, but preferably not
 %              coarser
+%   filename - full path to h5 file, if the file exists, it will be deleted
+%
 
 % Collect input
 xmin = box_size(1); 
@@ -33,11 +35,14 @@ x_center = x(2:end)-0.5*dx;
 y_center = y(2:end)-0.5*dy;
 [X,Y] = ndgrid(x_center,y_center);
 
- 
+% If file exists, delete it
+delete(filename);  
+  
 % Loop through species
-particles = [];
 for iSpecies = 1:nSpecies
-  disp(['Species ' num2str(iSpecies)])
+  particles = [];
+  tt = tic;
+  fprintf('Species %g: \n',iSpecies)
   % Density ditribution
   nfun = n_dist{iSpecies};
   
@@ -76,8 +81,7 @@ for iSpecies = 1:nSpecies
   part_w = zeros(M_final,1);
   % Fill matrix with random positions within each cell
   part_count_stop = 0;
-  for icell = 1:numel(X_left_edges)
-    icell;
+  for icell = 1:numel(X_left_edges)    
     part_count_start = part_count_stop  + 1;
     part_count_stop  = part_count_start - 1 + M(icell);
 
@@ -86,11 +90,35 @@ for iSpecies = 1:nSpecies
     part_w(part_count_start:part_count_stop) = W(icell);
   end
   
-  particles(iSpecies).number_macro_particles = M_final;
-  particles(iSpecies).x = part_x;
-  particles(iSpecies).y = part_y;
-  particles(iSpecies).z = part_y*0; % for 2D
-  particles(iSpecies).weight = part_w;
+  particles.number_macro_particles = M_final;
+  particles.x = part_x;
+  particles.y = part_y;
+  particles.z = part_y*0; % for 2D
+  particles.weight = part_w;
+  
+  % Write to h5 file
+  %disp('Writing h5 file.')
+  group = sprintf('/particles/species%g/',iSpecies);
+  
+  % Write weight
+  data = particles.weight;
+  dataset = [group 'weight'];
+  h5create(filename,dataset,numel(data)) % using size(data) is not compatible with Smilei, because then the data is "2D, and not 1D as required"
+  h5write(filename,dataset,data)
+  
+  % Write positions
+  for comp = ['x','y','z']
+    data = particles.(comp);
+    dataset = [group 'position/' comp];
+    h5create(filename,dataset,numel(data))
+    h5write(filename,dataset,data)
+  end
+  %disp('Done writing h5 file.')
+  h5disp(filename,group)
+
+  % Print time diagnostics
+  tt = toc(tt);
+  fprintf('Elapsed time is %g seconds\n',tt)
 end
 
 out = particles;

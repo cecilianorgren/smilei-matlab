@@ -22,13 +22,14 @@ fn_Harris = @(x,y) nbg_harris + n0./cosh((y-y0)/L).^2;
 % Use symbolic expression to construct density variations (adding different
 % functions)
 syms xvar yvar
-lin = 0.5*sqrt(mime); % transition length scale
+lin = 0.25*sqrt(mime); % transition length scale
 
 % Cold particles from the top
 n_cold_bg = 0.05;
 n_cold_var = 0.1; % amplitude of transition
 % locations of transitions
-y_trans = (3:3:24)*sqrt(mime);
+y_trans = (3:1:24)*sqrt(mime);
+y_trans = [3 4 5 6 8 10 12 14 16 18]*sqrt(mime);
 f_ctop_all = 0;
 for itrans = 1:numel(y_trans)
   if mod(itrans,2) sign_f = 1; else sign_f = -1; end
@@ -60,27 +61,36 @@ fn_bot = matlabFunction(f_cbot_all + fn_cold_bg,'vars',[xvar yvar]);
 
 % About how many particles we want
 %M_target = [5e6,5e6,5e8,5e8,5e8,5e8];
-
-M_target_harris = 2e7;
-M_target_cold = 2e8;
-M_target = [M_target_harris,M_target_harris,M_target_cold,M_target_cold,M_target_cold,M_target_cold];
+% I think we only need to initialize 3 species, because the ions and
+% electrons can have the same starting positions,
+M_target_harris = 1e8;
+M_target_cold = 1e9;
+%M_target = [M_target_harris,M_target_harris,M_target_cold,M_target_cold,M_target_cold,M_target_cold];
+M_target = [M_target_harris,M_target_cold,M_target_cold];
 
 M_tot_target = sum(M_target);
 
 % Collect distributions for all species
-n_dist = {fn_Harris,fn_Harris,fn_top,fn_top,fn_bot,fn_bot};
+%n_dist = {fn_Harris,fn_Harris,fn_top,fn_top,fn_bot,fn_bot};
+n_dist = {fn_Harris,fn_top,fn_bot};
 
 % Just do two species to speed up
-%M_target_harris = 1e7;
-%M_target_cold = 1e8;
-%M_target = [M_target_harris,M_target_cold];
-%M_tot_target = sum(M_target);
-%n_dist = {fn_Harris,fn_top};
+% M_target_harris = 1e6;
+% M_target_cold = 1e7;
+% M_target = [M_target_harris,M_target_cold];
+% M_tot_target = sum(M_target);
+% n_dist = {fn_Harris,fn_top};
 
 % Initalize particles
 disp('Initializing particles.')
-particles  = smilei_initialize_particles_write_h5(M_target,n_dist,[0,box_size(1),0,box_size(2)],nxny);
+% particles  = smilei_initialize_particles(M_target,n_dist,[0,box_size(1),0,box_size(2)],nxny);
+% If too many particles needs to be intialized, computer/Matlab will run 
+% out of memory (?) and crash. At least it crashe donce. Therefore, it's 
+% safer to write each species to file and reset the arrays between species.
+h5file = '/Users/cno062/Data/SMILEI/initialize_particles/particle_position.h5'; 
+smilei_initialize_particles_write_h5(M_target,n_dist,[0,box_size(1),0,box_size(2)],nxny,h5file);
 disp('Ready.')
+
 %% Save to file
 % On betzy, filepath should be something like:
 % particle_position.h5/particles/species1
@@ -132,14 +142,14 @@ ncols = 2;
 h = setup_subplots(nrows,ncols);
 isub = 1;
 
-for iSpecies = 2:3%1:numel(M_target)
+for iSpecies = 1:2%1:numel(M_target)
   if 0 % Individual particle locations  
     hca = h(isub); isub = isub + 1;
     plot(hca,particles(iSpecies).x,particles(iSpecies).y,'.')  
   end
   if 1 % Particles per bin
     hca = h(isub); isub = isub + 1;
-    [count,edges,mid,loc] = histcn([particles(iSpecies).x,particles(iSpecies).y],x_grid,y_grid);
+    [count,edges,mid,loc] = histcn([particles(iSpecies).x,particles(iSpecies).y],x_grid,y_grid(fix(nxny(2)/2):end));
     pcolor(hca,mid{1:2},count')
     shading(hca,'flat');
     hcb = colorbar('peer',hca);
@@ -147,7 +157,7 @@ for iSpecies = 2:3%1:numel(M_target)
   end
   if 1 % Individual particles binned
     hca = h(isub); isub = isub + 1;
-    [count,edges,mid,loc] = histcn([particles(iSpecies).x,particles(iSpecies).y],x_grid,y_grid,'AccumData',particles(iSpecies).weight);
+    [count,edges,mid,loc] = histcn([particles(iSpecies).x,particles(iSpecies).y],x_grid,y_grid(fix(nxny(2)/2):end),'AccumData',particles(iSpecies).weight);
     pcolor(hca,mid{1:2},count'/prod(cell_length))
     shading(hca,'flat');
     hcb = colorbar('peer',hca);
@@ -156,5 +166,5 @@ for iSpecies = 2:3%1:numel(M_target)
 end
 
 hlinks = linkprop(h,{'XLim','YLim'});
-h(1).XLim = [0,box_size(1)];
-h(1).YLim = [0,box_size(2)];
+%h(1).XLim = [0,box_size(1)];
+%h(1).YLim = [0,box_size(2)];

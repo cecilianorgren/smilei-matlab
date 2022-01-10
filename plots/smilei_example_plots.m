@@ -17,11 +17,6 @@ filepath = ['/Users/' localuser '/Data/PIC/Smilei/cn_open_boundary/Fields0.h5'];
 namelist = ['/Users/' localuser '/Data/PIC/Smilei/cn_open_boundary/Harris_open_boundary.py'];
 particlebinningpath = ['/Users/' localuser '/Data/PIC/Smilei/cn_open_boundary/'];
 
-filepath = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/Fields0.h5'];
-namelist = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/Harris_open_boundary.py'];
-particlebinningpath = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/'];
-
-
 filepath = '/Users/cno062/Discs/betzy2/stableSmilei/namelist_dev/Fields0.h5';
 namelist = '/Users/cno062/Discs/betzy2/stableSmilei/namelist_dev/Harris_dev.py';
 
@@ -34,8 +29,16 @@ filepath = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/data_tmp_ape
 namelist = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/data_tmp_apert0.75/Harris_varying_inflow_load_positions_from_h5.py';
 particlebinningpath = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/data_tmp_apert0.75/';
 
+filepath = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/Fields0.h5';
+namelist = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/Harris_varying_inflow_load_positions_from_h5.py';
+particlebinningpath = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/';
+
+filepath = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/Fields0.h5'];
+namelist = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/Harris_open_boundary.py'];
+particlebinningpath = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/'];
+
 %sm = SMILEI(filepath,namelist,particlebinningpath);
-sm75 = SMILEI(filepath,namelist,particlebinningpath);
+sm = SMILEI(filepath,namelist,particlebinningpath);
 
 %%
 filepath = '/Users/cno062/tesla/software/Smilei4.5/Smilei/3d_turb/Fields0.h5';

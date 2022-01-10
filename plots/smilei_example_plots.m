@@ -34,13 +34,26 @@ filepath = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/data_tmp_ape
 namelist = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/data_tmp_apert0.75/Harris_varying_inflow_load_positions_from_h5.py';
 particlebinningpath = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/data_tmp_apert0.75/';
 
+filepath = '/Users/cecilia/Discs/tesla/AGU/diamagnetic/Fields0.h5';
+namelist = '/Users/cecilia/Discs/tesla/AGU/diamagnetic/Diamagnetic.py';
+particlebinningpath = '/Users/cecilia/Discs/tesla/AGU/diamagnetic/';
+
+filepath = '/Users/cecilia/Data/PIC/Smilei/AGU2/Fields0.h5';
+namelist = '/Users/cecilia/Data/PIC/Smilei/AGU2/Diamagnetic.py';
+particlebinningpath = '/Users/cecilia/Data/PIC/Smilei/AGU2/';
+
 %sm = SMILEI(filepath,namelist,particlebinningpath);
-sm75 = SMILEI(filepath,namelist,particlebinningpath);
+sm = SMILEI(filepath,namelist,particlebinningpath);
 
 %%
 filepath = '/Users/cno062/tesla/software/Smilei4.5/Smilei/3d_turb/Fields0.h5';
 namelist = '/Users/cno062/tesla/software/Smilei4.5/Smilei/3d_turb/Harris3d.py';
 sm = PIC(filepath,namelist);
+
+
+%%
+pic = sm(1:2:sm.nt).twcilim([20 100]);
+h = pic.movie({'ni'}','A',0.5,'cmap',{pic_colors('thermal')},'clim',{[0 2]});
 
 %% Figure: Diagnostic 1
 pic = sm(sm.nt);

@@ -152,7 +152,7 @@ for it = 1:nt
     id_all = 36:41;
     species = cell(6,1);
     %plot(hca,nan,nan)
-    %hold(hca,'on')
+    hold(hca,'on')
     for ii = 1:numel(id_all)
       id = id_all(ii);
       filename = sprintf('ParticleBinning%g.h5',id);
@@ -168,21 +168,18 @@ for it = 1:nt
       end
       species{ii} = h5readatt([dirpath filename],'/','species');
       toplot(ii).dep = dep1;
-      toplot(ii).data = squeeze(data);
-      %hl(ii) = plot(hca,dep1,squeeze(data));
-%       if ii == 1
-%         hold(hca,'on')
-%       elseif ii == numel(id_all)
-%         hold(hca,'off')
-%       end
-    end
-    alldata = cat(2,toplot.data)';
-    alldep = cat(1,toplot.dep);
-    plot(hca,alldep',alldata')
+      toplot(ii).dep = dep1;
+      hl(ii) = plot(hca,dep1,squeeze(data));
       hca.XLabel.String = dep1_tok{1};
       hca.YLabel.String = name(1:9);
       hca.YLabel.Interpreter = 'none';
-    %hold(hca,'off')
+      if ii == 1
+        hold(hca,'on')
+      elseif ii == numel(id_all)
+        hold(hca,'off')
+      end
+    end
+    hold(hca,'off')
     hca.XScale = 'log';
     hca.YScale = 'log';
     hleg = legend(hca,species,'location','best');

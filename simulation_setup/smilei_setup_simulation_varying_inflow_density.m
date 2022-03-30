@@ -63,8 +63,8 @@ fn_bot = matlabFunction(f_cbot_all + fn_cold_bg,'vars',[xvar yvar]);
 %M_target = [5e6,5e6,5e8,5e8,5e8,5e8];
 % I think we only need to initialize 3 species, because the ions and
 % electrons can have the same starting positions,
-M_target_harris = 1e8;
-M_target_cold = 1e9;
+M_target_harris = 1e7;
+M_target_cold = 1e7;
 %M_target = [M_target_harris,M_target_harris,M_target_cold,M_target_cold,M_target_cold,M_target_cold];
 M_target = [M_target_harris,M_target_cold,M_target_cold];
 
@@ -87,7 +87,8 @@ disp('Initializing particles.')
 % If too many particles needs to be intialized, computer/Matlab will run 
 % out of memory (?) and crash. At least it crashe donce. Therefore, it's 
 % safer to write each species to file and reset the arrays between species.
-h5file = '/Users/cno062/Data/SMILEI/initialize_particles/particle_position.h5'; 
+%h5file = '/Users/cno062/Data/SMILEI/initialize_particles/particle_position.h5'; 
+h5file = '/Users/cno062/Data/SMILEI/initialize_particles/particle_position_test.h5'; 
 smilei_initialize_particles_write_h5(M_target,n_dist,[0,box_size(1),0,box_size(2)],nxny,h5file);
 disp('Ready.')
 
@@ -137,6 +138,17 @@ disp('Done writing h5 file.')
 % [ndims,h5_dims] = H5S.get_simple_extent_dims(space_id);
 % matlab_dims = fliplr(h5_dims);
 %% Plot results
+% Read data from h5 file
+clear particles;
+for iSpecies = 1:3  
+  for comp = ['x' 'y']
+    particles(iSpecies).weight = h5read(h5file,sprintf('/particles/species%.0f/weight',iSpecies));
+    particles(iSpecies).(comp) = h5read(h5file,sprintf('/particles/species%.0f/position/%s',iSpecies,comp));
+    %particles(iSpecies).(['v' comp]) = h5read(h5file,sprintf('/particles/species%.0f/position/%s',iSpeices,comp));
+  end
+end
+
+
 nrows = 2;%numel(M_target);
 ncols = 2;
 h = setup_subplots(nrows,ncols);

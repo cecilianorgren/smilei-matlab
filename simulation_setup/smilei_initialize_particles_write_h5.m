@@ -54,6 +54,9 @@ for iSpecies = 1:nSpecies
 
   % Total number of microparticles in simulation (for given species)
   N_tot = sum(N(:)); 
+  
+  % Function giving the number of particles at each location
+  mfun = @(x,y) ceil(nfun(x,y)*(M_tot_target/N_tot));
 
   % Fraction of particles in each cell
   N_frac = N/N_tot;
@@ -91,6 +94,7 @@ for iSpecies = 1:nSpecies
   end
   
   particles.number_macro_particles = M_final;
+  particles.mfun = mfun;
   particles.x = part_x;
   particles.y = part_y;
   particles.z = part_y*0; % for 2D

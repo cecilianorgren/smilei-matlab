@@ -1,6 +1,6 @@
 %% Specify path
 dirpath = '/Users/cecilia/Discs/betzy/Smilei/cn_cold_dipolarization/cold_momentum/';
-dirpath = '/Users/cno062/Discs/betzy_base/work/users/paulten/diamagnetic/';
+dirpath = '/Users/cno062/Discs/betzy/work/users/paulten/diamagnetic/';
 filename = 'TrackParticlesDisordered_eon.h5';
 
 info = h5info([dirpath filename]);

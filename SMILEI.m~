@@ -152,7 +152,7 @@ classdef SMILEI
       tic; % time loading, and 
       
       %% Go through ParticleBinning files
-      if 0;%exist('particleBinningPath') && not(isempty(particleBinningPath))
+      if 1;%exist('particleBinningPath') && not(isempty(particleBinningPath))
         % List files              
         listFiles = dir([particleBinningPath 'ParticleBinning*.h5']);
         nFiles = numel(listFiles);

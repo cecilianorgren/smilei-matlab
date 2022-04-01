@@ -32,7 +32,7 @@ particlebinningpath = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/d
 
 filepath = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/Fields0.h5';
 namelist = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/Harris_varying_inflow_load_positions_from_h5.py';
-particlebinningpath = '/Users/cno062/Discs/betzy/Smilei/cn_cold_dipolarization/';
+particlebinningpath = '/Users/cno062/D  iscs/betzy/Smilei/cn_cold_dipolarization/';
 
 filepath = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/Fields0.h5'];
 namelist = ['/Users/' localuser '/Data/SMILEI/cn_open_boundary/Harris_open_boundary.py'];
@@ -46,6 +46,10 @@ filepath = '/Users/cecilia/Data/PIC/Smilei/AGU2/Fields0.h5';
 namelist = '/Users/cecilia/Data/PIC/Smilei/AGU2/Diamagnetic.py';
 particlebinningpath = '/Users/cecilia/Data/PIC/Smilei/AGU2/';
 
+
+filepath = '/Volumes/DataRaid/cno062/betzy/oldSmilei/cn_cold_dipolarization/Fields0.h5';
+namelist = '/Volumes/DataRaid/cno062/betzy/oldSmilei/cn_cold_dipolarization/Harris_varying_inflow_load_positions_from_h5.py';
+particlebinningpath = '/Volumes/DataRaid/cno062/betzy/oldSmilei/cn_cold_dipolarization/';
 
 %sm = SMILEI(filepath,namelist,particlebinningpath);
 sm = SMILEI(filepath,namelist,particlebinningpath);
@@ -137,3 +141,11 @@ cmap_br = pic_colors('blue_red');
 cmaps = {cmap_th,cmap_th,cmap_th};
 
 pic.xlim(xlim).zlim(zlim).plot_line('y',varstrs)
+
+%% Plot tracked particles
+h5file = 'TrackParticlesDisordered_eon_cold_bot.h5';
+x1 = h5read(h5file,'/data/0000000000/particles/eon_cold_bot/position/x');
+y1 = h5read(h5file,'/data/0000000000/particles/eon_cold_bot/position/y');
+x2 = h5read(h5file,'/data/0000002390/particles/eon_cold_bot/position/x');
+y2 = h5read(h5file,'/data/0000002390/particles/eon_cold_bot/position/y');
+
